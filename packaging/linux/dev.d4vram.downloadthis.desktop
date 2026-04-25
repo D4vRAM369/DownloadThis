@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=DownloadThis
+GenericName=Video Downloader
+Comment=GUI para yt-dlp con diseño vintage XP Luna P2P
+Exec=/opt/downloadthis/downloadthis %U
+Icon=dev.d4vram.downloadthis
+Terminal=false
+Categories=Network;FileTransfer;Video;
+MimeType=x-scheme-handler/https;x-scheme-handler/http;
+StartupWMClass=downloadthis
+Keywords=youtube;download;video;yt-dlp;

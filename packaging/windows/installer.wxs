@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  WiX v3 source for DownloadThis MSI installer.
+  Build:
+    heat dir dist\downloadthis -cg AppFiles -gg -scom -sreg -sfrag -srd -dr INSTALLFOLDER -out obj\AppFiles.wxs
+    candle -arch x64 packaging\windows\installer.wxs obj\AppFiles.wxs -out obj\
+    light -ext WixUIExtension obj\installer.wixobj obj\AppFiles.wixobj -out dist\downloadthis-$(VERSION)-x64.msi
+-->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product
+    Id="*"
+    Name="DownloadThis"
+    Language="1033"
+    Version="$(var.VERSION)"
+    Manufacturer="D4vRAM"
+    UpgradeCode="A1B2C3D4-E5F6-7890-ABCD-EF1234567890">
+
+    <Package
+      InstallerVersion="500"
+      Compressed="yes"
+      InstallScope="perMachine"
+      Platform="x64"
+      Description="GUI para yt-dlp con diseño vintage XP Luna P2P"
+      Manufacturer="D4vRAM" />
+
+    <MajorUpgrade
+      DowngradeErrorMessage="A newer version of DownloadThis is already installed." />
+
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- UI -->
+    <UIRef Id="WixUI_InstallDir" />
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+
+    <!-- Icon -->
+    <Icon Id="AppIcon.ico" SourceFile="$(var.ICON_ICO)" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon.ico" />
+    <Property Id="ARPHELPLINK"    Value="https://github.com/D4vRAM369/downloadthis" />
+
+    <!-- Install location -->
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="INSTALLFOLDER" Name="DownloadThis" />
+      </Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="DownloadThis" />
+      </Directory>
+      <Directory Id="DesktopFolder" Name="Desktop" />
+    </Directory>
+
+    <!-- Start Menu shortcut -->
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="ApplicationShortcut" Guid="B1C2D3E4-F5A6-7890-BCDE-F12345678901">
+        <Shortcut Id="StartMenuShortcut"
+                  Name="DownloadThis"
+                  Description="GUI para yt-dlp"
+                  Target="[INSTALLFOLDER]downloadthis.exe"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <RemoveFolder Id="CleanupStartMenu" On="uninstall" />
+        <RegistryValue Root="HKCU"
+                       Key="Software\D4vRAM\DownloadThis"
+                       Name="installed" Type="integer" Value="1"
+                       KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+
+    <!-- Desktop shortcut -->
+    <DirectoryRef Id="DesktopFolder">
+      <Component Id="DesktopShortcut" Guid="C2D3E4F5-A6B7-8901-CDEF-123456789012">
+        <Shortcut Id="DesktopShortcutLink"
+                  Name="DownloadThis"
+                  Target="[INSTALLFOLDER]downloadthis.exe"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <RegistryValue Root="HKCU"
+                       Key="Software\D4vRAM\DownloadThis"
+                       Name="desktop" Type="integer" Value="1"
+                       KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+
+    <Feature Id="ProductFeature" Title="DownloadThis" Level="1">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentRef Id="ApplicationShortcut" />
+      <ComponentRef Id="DesktopShortcut" />
+    </Feature>
+  </Product>
+</Wix>
