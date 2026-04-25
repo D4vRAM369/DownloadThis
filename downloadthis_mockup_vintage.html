@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DownloadThis Pro — Mockup Vintage P2P</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #c0c0c0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 20px; min-height: 100vh; font-family: 'Tahoma', 'MS Sans Serif', Arial, sans-serif; font-size: 11px; }
+.vr { background: #ece9d8; color: #000; width: 720px; border-top: 2px solid #fff; border-left: 2px solid #fff; border-right: 2px solid #6e6b63; border-bottom: 2px solid #6e6b63; }
+.titlebar { background: linear-gradient(90deg, #082984 0%, #1f5fd4 60%, #6fa8e8 100%); padding: 3px 6px 3px 4px; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.tb-left { display: flex; align-items: center; gap: 5px; }
+.tb-appicon { width: 16px; height: 16px; background: #fff; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
+.tb-name { color: #fff; font-size: 11px; font-weight: bold; text-shadow: 1px 1px 2px #0005; white-space: nowrap; }
+.tb-name span { font-weight: normal; color: #b8d4f8; font-size: 10px; margin-left: 4px; }
+.winbtns { display: flex; gap: 2px; }
+.wbtn { width: 17px; height: 15px; border-top: 1px solid #fff; border-left: 1px solid #fff; border-right: 1px solid #555; border-bottom: 1px solid #555; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; cursor: pointer; color: #000; background: linear-gradient(180deg,#f0f0f0,#d4d0c8); }
+.wbtn.close { background: linear-gradient(180deg,#f06060,#c03030); color: #fff; }
+.menubar { background: #ece9d8; border-bottom: 1px solid #b5b0a0; padding: 1px 4px; display: flex; gap: 1px; }
+.mi { padding: 2px 8px; cursor: pointer; border-radius: 2px; }
+.mi:hover { background: #082984; color: #fff; }
+.toolbar { background: linear-gradient(180deg, #f6f4ef 0%, #dedad2 100%); border-bottom: 2px solid #b5b0a0; border-top: 1px solid #fff; padding: 3px 5px; display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
+.tbtn { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 3px 7px; border-top: 1px solid #fff; border-left: 1px solid #fff; border-right: 1px solid #6e6b63; border-bottom: 1px solid #6e6b63; background: linear-gradient(180deg,#faf9f5,#dedad2); cursor: pointer; min-width: 42px; color: #000; }
+.tbtn:hover { background: linear-gradient(180deg,#fff,#e8e4dc); }
+.tbtn-icon { font-size: 16px; line-height: 1; }
+.tbtn-label { font-size: 9px; color: #333; white-space: nowrap; }
+.tbsep { width: 1px; background: #b5b0a0; height: 36px; margin: 0 3px; box-shadow: 1px 0 0 #fff; }
+.urlbar { display: flex; align-items: center; gap: 5px; padding: 4px 6px; border-bottom: 1px solid #b5b0a0; background: #ece9d8; }
+.url-label { font-size: 11px; font-weight: bold; white-space: nowrap; color: #333; }
+.url-input { flex: 1; border-top: 2px solid #888; border-left: 2px solid #888; border-right: 1px solid #fff; border-bottom: 1px solid #fff; background: #fff; padding: 2px 5px; font-size: 11px; font-family: Tahoma, Arial; outline: none; }
+.url-btn { border-top: 1px solid #fff; border-left: 1px solid #fff; border-right: 1px solid #6e6b63; border-bottom: 1px solid #6e6b63; background: linear-gradient(180deg,#faf9f5,#dedad2); padding: 2px 8px; cursor: pointer; font-size: 11px; }
+.main { display: grid; grid-template-columns: 1fr 214px; }
+.left { border-right: 2px solid #b5b0a0; display: flex; flex-direction: column; }
+.panel-hdr { background: linear-gradient(180deg,#eae6db,#d4d0c8); border-bottom: 1px solid #b5b0a0; padding: 2px 6px; font-size: 11px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+.panel-hdr-count { margin-left: auto; font-weight: normal; color: #666; font-size: 10px; }
+.qlist { flex: 1; background: #fff; border-top: 2px solid #888; border-left: 2px solid #888; border-right: 1px solid #dfdfdf; border-bottom: 1px solid #dfdfdf; margin: 4px; overflow: hidden; }
+.qhead { display: grid; grid-template-columns: minmax(0,1fr) 46px 64px 52px 58px; background: linear-gradient(180deg,#eae6db,#d4d0c8); border-bottom: 1px solid #b5b0a0; }
+.qhc { padding: 2px 4px; font-size: 10px; font-weight: bold; border-right: 1px solid #b5b0a0; cursor: pointer; white-space: nowrap; overflow: hidden; user-select: none; }
+.qhc:hover { background: #d0ccc0; }
+.qhc:last-child { border-right: none; }
+.qrow { display: grid; grid-template-columns: minmax(0,1fr) 46px 64px 52px 58px; border-bottom: 1px solid #eee; cursor: default; }
+.qrow:nth-child(even) { background: #eef3ff; }
+.qrow.sel { background: #082984; color: #fff; }
+.qrow.sel .qc { color: #fff; }
+.qc { padding: 2px 4px; font-size: 10px; border-right: 1px solid #e8e8e8; overflow: hidden; white-space: nowrap; color: #000; }
+.qc:last-child { border-right: none; }
+.pg-bg { height: 11px; background: #ccc; border: 1px inset #999; overflow: hidden; margin: 1px 3px; }
+.pg-fill { height: 100%; background: linear-gradient(180deg,#70d070,#1a8a1a); }
+.pg-txt { font-size: 9px; text-align: center; color: #444; line-height: 1.2; }
+.st-dl { color: #006600; font-weight: bold; font-size: 9px; }
+.st-q  { color: #886600; font-size: 9px; }
+.st-done { color: #004488; font-size: 9px; }
+.drag-hint { padding: 14px 8px; text-align: center; color: #aaa; font-size: 10px; border-top: 1px dashed #ccc; }
+.log-panel { border-top: 2px solid #b5b0a0; }
+.log-hdr { background: linear-gradient(180deg,#eae6db,#d4d0c8); border-bottom: 1px solid #b5b0a0; padding: 2px 6px; font-weight: bold; font-size: 11px; display: flex; align-items: center; gap: 5px; }
+.log-box { background: #0a0a0a; color: #00cc00; font-family: 'Courier New', monospace; font-size: 10px; padding: 4px 7px; min-height: 56px; border-top: 2px solid #888; border-left: 2px solid #888; margin: 3px 4px; }
+.log-line { line-height: 1.6; }
+.log-ts { color: #446644; }
+.log-ok { color: #00cc00; }
+.log-info { color: #6699ff; }
+.log-warn { color: #ffaa00; }
+.right { display: flex; flex-direction: column; background: #ece9d8; }
+.opts-hdr { background: linear-gradient(180deg,#eae6db,#d4d0c8); border-bottom: 1px solid #b5b0a0; padding: 2px 6px; font-weight: bold; font-size: 11px; display: flex; align-items: center; gap: 5px; }
+.form { padding: 5px 6px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.frow { display: flex; align-items: center; gap: 4px; }
+.flabel { font-size: 11px; min-width: 62px; color: #333; white-space: nowrap; }
+.fsel { background: #fff; border-top: 2px solid #888; border-left: 2px solid #888; border-right: 1px solid #dfdfdf; border-bottom: 1px solid #dfdfdf; font-size: 11px; font-family: Tahoma, Arial; padding: 1px 2px; flex: 1; outline: none; }
+.finput { background: #fff; border-top: 2px solid #888; border-left: 2px solid #888; border-right: 1px solid #dfdfdf; border-bottom: 1px solid #dfdfdf; font-size: 11px; font-family: Tahoma, Arial; padding: 1px 4px; flex: 1; outline: none; }
+.fsep { border: none; border-top: 1px solid #b5b0a0; margin: 3px 0; }
+.fcheck { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+.fchkbox { width: 13px; height: 13px; border-top: 2px solid #888; border-left: 2px solid #888; border-right: 1px solid #dfdfdf; border-bottom: 1px solid #dfdfdf; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 9px; flex-shrink: 0; }
+.specials { display: flex; gap: 4px; padding: 5px 6px; border-top: 1px solid #b5b0a0; }
+.spbtn { flex: 1; border-top: 1px solid #fff; border-left: 1px solid #fff; border-right: 1px solid #6e6b63; border-bottom: 1px solid #6e6b63; padding: 4px 2px; font-size: 10px; font-weight: bold; cursor: pointer; text-align: center; }
+.spbtn.amber { background: linear-gradient(180deg,#fff8e0,#e8c840); color: #664400; }
+.spbtn.blue  { background: linear-gradient(180deg,#e0eeff,#80a8e8); color: #002288; }
+.dl-btn { margin: 5px 6px; border-top: 2px solid #80e080; border-left: 2px solid #80e080; border-right: 2px solid #207020; border-bottom: 2px solid #207020; background: linear-gradient(180deg,#60c060,#228822); color: #fff; font-size: 12px; font-weight: bold; padding: 7px 4px; cursor: pointer; text-align: center; text-shadow: 1px 1px 0 #005500; letter-spacing: 0.02em; }
+.savecfg { margin: 0 6px 6px; border-top: 1px solid #fff; border-left: 1px solid #fff; border-right: 1px solid #6e6b63; border-bottom: 1px solid #6e6b63; background: linear-gradient(180deg,#faf9f5,#dedad2); font-size: 10px; padding: 2px; cursor: pointer; text-align: center; color: #333; }
+.statusbar { background: linear-gradient(180deg,#dedad2,#c8c4bc); border-top: 2px solid #fff; padding: 2px 5px; display: flex; gap: 2px; align-items: center; }
+.sb { flex: 1; border-top: 2px solid #888; border-left: 2px solid #888; border-right: 1px solid #fff; border-bottom: 1px solid #fff; padding: 1px 5px; font-size: 10px; background: #ece9d8; white-space: nowrap; overflow: hidden; }
+
+/* DESIGN TOKENS - para referencia del desarrollador */
+/*
+  COLOR PALETTE:
+  --bg-main:        #ece9d8   (fondo general Windows XP Luna)
+  --bg-panel-hdr:   #eae6db → #d4d0c8  (degradado cabeceras panel)
+  --bg-toolbar:     #f6f4ef → #dedad2  (degradado toolbar)
+  --bg-titlebar:    #082984 → #1f5fd4 → #6fa8e8  (degradado titulo)
+  --bg-queue-even:  #eef3ff  (fila par en cola)
+  --bg-selected:    #082984  (fila seleccionada)
+  --bg-log:         #0a0a0a  (fondo log)
+  --fg-log:         #00cc00  (texto log principal)
+  --fg-log-ts:      #446644  (timestamp log)
+  --fg-log-info:    #6699ff  (info log)
+  --fg-log-warn:    #ffaa00  (warning log)
+  --fg-status-dl:   #006600  (estado descargando)
+  --fg-status-q:    #886600  (estado en cola)
+  --fg-status-done: #004488  (estado completado)
+  --progress-fill:  #70d070 → #1a8a1a  (barra progreso)
+  --btn-dl-fill:    #60c060 → #228822  (boton descargar todo)
+  --btn-amber:      #fff8e0 → #e8c840  (boton anti-403)
+  --btn-blue:       #e0eeff → #80a8e8  (boton no-dash)
+  --border-outset:  top/left=#fff  right/bottom=#6e6b63
+  --border-inset:   top/left=#888  right/bottom=#dfdfdf
+  --border-panel:   #b5b0a0
+
+  FONTS:
+  --font-ui:     Tahoma, 'MS Sans Serif', Arial, sans-serif, 11px
+  --font-log:    'Courier New', monospace, 10px
+  --font-small:  9-10px para etiquetas menores
+
+  QUEUE COLUMNS:
+  Nombre | Tamaño | Progreso (canvas) | Velocidad | ETA/Estado
+  proportions: 1fr | 46px | 64px | 52px | 58px
+
+  LAYOUT:
+  main grid: left(1fr) | right(214px)
+  toolbar: flex wrap con separadores verticales
+  statusbar: 4 paneles inset flexibles
+*/
+</style>
+</head>
+<body>
+
+<div class="vr">
+  <div class="titlebar">
+    <div class="tb-left">
+      <div class="tb-appicon">⬇</div>
+      <span class="tb-name">DownloadThis Pro <span>— GUI para yt-dlp</span></span>
+    </div>
+    <div class="winbtns">
+      <div class="wbtn">_</div>
+      <div class="wbtn">□</div>
+      <div class="wbtn close">✕</div>
+    </div>
+  </div>
+
+  <div class="menubar">
+    <div class="mi">Archivo</div>
+    <div class="mi">Cola</div>
+    <div class="mi">Opciones</div>
+    <div class="mi">Herramientas</div>
+    <div class="mi">Ayuda</div>
+  </div>
+
+  <div class="toolbar">
+    <div class="tbtn"><div class="tbtn-icon">📁</div><div class="tbtn-label">Destino</div></div>
+    <div class="tbsep"></div>
+    <div class="tbtn"><div class="tbtn-icon">📋</div><div class="tbtn-label">Pegar URL</div></div>
+    <div class="tbtn"><div class="tbtn-icon">🔗</div><div class="tbtn-label">+ URL</div></div>
+    <div class="tbtn"><div class="tbtn-icon">📄</div><div class="tbtn-label">+ .txt</div></div>
+    <div class="tbsep"></div>
+    <div class="tbtn"><div class="tbtn-icon">▶</div><div class="tbtn-label">Iniciar</div></div>
+    <div class="tbtn"><div class="tbtn-icon">⏸</div><div class="tbtn-label">Pausar</div></div>
+    <div class="tbtn"><div class="tbtn-icon">⏹</div><div class="tbtn-label">Detener</div></div>
+    <div class="tbsep"></div>
+    <div class="tbtn"><div class="tbtn-icon">💾</div><div class="tbtn-label">Guardar</div></div>
+    <div class="tbtn"><div class="tbtn-icon">📂</div><div class="tbtn-label">Cargar</div></div>
+    <div class="tbsep"></div>
+    <div class="tbtn" style="color:#a00"><div class="tbtn-icon">🗑</div><div class="tbtn-label">Limpiar</div></div>
+    <div class="tbtn"><div class="tbtn-icon">⚙</div><div class="tbtn-label">Config</div></div>
+  </div>
+
+  <div class="urlbar">
+    <span class="url-label">Destino:</span>
+    <input class="url-input" value="/home/defcon/Descargas" />
+    <button class="url-btn">📁 Examinar</button>
+  </div>
+
+  <div class="main">
+    <div class="left">
+      <div class="panel-hdr">
+        <span>📥</span> Cola de Descargas
+        <span class="panel-hdr-count">3 elementos · 1 activo</span>
+      </div>
+      <div class="qlist">
+        <div class="qhead">
+          <div class="qhc">Nombre del archivo</div>
+          <div class="qhc">Tamaño</div>
+          <div class="qhc">Progreso</div>
+          <div class="qhc">Velocidad</div>
+          <div class="qhc">ETA / Estado</div>
+        </div>
+        <div class="qrow sel">
+          <div class="qc">lofi-hip-hop-chill-mi…</div>
+          <div class="qc">8.4 MB</div>
+          <div class="qc" style="padding:0">
+            <div class="pg-bg"><div class="pg-fill" style="width:72%"></div></div>
+            <div class="pg-txt" style="color:#cce8cc">72%</div>
+          </div>
+          <div class="qc"><span style="color:#88ffaa;font-size:9px">↓ 1.2 MB/s</span></div>
+          <div class="qc"><span style="color:#88ffaa;font-weight:bold;font-size:9px">00:04 ↓</span></div>
+        </div>
+        <div class="qrow">
+          <div class="qc">podcast-tech-ep141…</div>
+          <div class="qc">44.1 MB</div>
+          <div class="qc" style="padding:0">
+            <div class="pg-bg"><div class="pg-fill" style="width:0%"></div></div>
+            <div class="pg-txt">—</div>
+          </div>
+          <div class="qc"><span style="color:#aaa;font-size:9px">—</span></div>
+          <div class="qc"><span class="st-q">En cola</span></div>
+        </div>
+        <div class="qrow">
+          <div class="qc">tutorial-python-avan…</div>
+          <div class="qc">312 MB</div>
+          <div class="qc" style="padding:0">
+            <div class="pg-bg"><div class="pg-fill" style="width:100%"></div></div>
+            <div class="pg-txt">100%</div>
+          </div>
+          <div class="qc"><span style="color:#aaa;font-size:9px">—</span></div>
+          <div class="qc"><span class="st-done">✓ Completo</span></div>
+        </div>
+        <div class="drag-hint">— arrastra enlaces, URLs o archivos .txt aquí —</div>
+      </div>
+      <div class="log-panel">
+        <div class="log-hdr"><span>📋</span> Registro de Actividad</div>
+        <div class="log-box">
+          <div class="log-line"><span class="log-ts">[12:04:08]</span> <span class="log-info">Iniciando: lofi-hip-hop-chill-mix-2024.mp3</span></div>
+          <div class="log-line"><span class="log-ts">[12:04:09]</span> <span class="log-ok">yt-dlp OK · formato mp3 · calidad 0</span></div>
+          <div class="log-line"><span class="log-ts">[12:04:15]</span> <span class="log-ok">Progreso 72% · 6.0/8.4 MB · 1.2 MB/s · ETA 00:04</span></div>
+          <div class="log-line"><span class="log-ts">[12:03:51]</span> <span class="log-warn">tutorial-python-avanzado.mp4 · completado</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="opts-hdr"><span>⚙</span> Opciones Avanzadas</div>
+      <div class="form">
+        <div class="frow"><span class="flabel">Formato:</span><select class="fsel"><option>mp3</option><option>mp4</option><option>m4a</option><option>flac</option><option>opus</option><option>wav</option></select></div>
+        <div class="frow"><span class="flabel">Calidad (0-9):</span><input class="finput" value="0" style="width:32px;flex:none" /></div>
+        <div class="frow"><span class="flabel">Cookies Nav:</span><select class="fsel"><option>none</option><option>brave</option><option>firefox</option><option>chrome</option></select></div>
+        <div class="frow"><span class="flabel">Cookies.txt:</span><input class="finput" value="/home/defcon/Esc…" style="font-size:10px" /></div>
+        <div class="frow"><span class="flabel">Plantilla:</span><input class="finput" value="%(title)s.%(ext)s" style="font-size:10px" /></div>
+        <div class="frow"><span class="flabel">Args extra:</span><input class="finput" placeholder="—" /></div>
+        <hr class="fsep" />
+        <div class="fcheck"><div class="fchkbox">✓</div><span>Descargar playlist completa</span></div>
+        <div class="fcheck"><div class="fchkbox"></div><span>Sobrescribir si existe</span></div>
+        <div class="fcheck"><div class="fchkbox">✓</div><span>Incrustar thumbnail</span></div>
+      </div>
+      <div class="specials">
+        <button class="spbtn amber">⚡ Anti-403</button>
+        <button class="spbtn blue">◈ No-DASH</button>
+      </div>
+      <button class="dl-btn">▼  DESCARGAR TODO</button>
+      <button class="savecfg">💾 Guardar Configuración</button>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <div class="sb">Cola: 3 elementos</div>
+    <div class="sb">Activos: 1</div>
+    <div class="sb" style="flex:2">↓ 1.2 MB/s · /home/defcon/Descargas</div>
+    <div class="sb" style="flex:0;white-space:nowrap">yt-dlp 2024.11</div>
+  </div>
+</div>
+
+</body>
+</html>
