@@ -2,7 +2,7 @@
 
 # DownloadThis Pro
 
-**GUI para yt-dlp — descarga audio y vídeo de cualquier sitio, sin complicaciones**
+**GUI para yt-dlp — extrae audio de YouTube, SoundCloud y 1000+ sitios, sin complicaciones**
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=flat-square&logo=python)](https://python.org)
 [![yt-dlp](https://img.shields.io/badge/yt--dlp-latest-red?style=flat-square)](https://github.com/yt-dlp/yt-dlp)
@@ -98,12 +98,6 @@ Para instrucciones completas, cookies, playlists y solución de problemas → **
 
 ---
 
-## Capturas
-
-> *Screenshots próximamente*
-
----
-
 ## Estructura del proyecto
 
 ```
@@ -125,6 +119,11 @@ downloadthis/
 
 Disponible directamente desde este repositorio.  
 Packaging nativo para Linux (`.desktop`) y Windows (NSIS/WiX) en `packaging/`.
+
+## Roadmap
+
+- **v1.0**: extracción de audio local con `yt-dlp`
+- **v1.1/v1.2**: modo audio + vídeo, cuando exista selector dedicado, comandos separados y tests propios
 
 ---
 
@@ -159,7 +158,7 @@ Hecho en Las Palmas de Gran Canaria por [D4vRAM](https://github.com/D4vRAM369)
 
 # DownloadThis Pro
 
-**GUI for yt-dlp — download audio and video from any site, without the hassle**
+**GUI for yt-dlp — extract audio from YouTube, SoundCloud and 1000+ sites, without the hassle**
 
 </div>
 

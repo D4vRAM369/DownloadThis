@@ -5,7 +5,7 @@ Unicode True
 
 !define APP_NAME        "DownloadThis"
 !define APP_ID          "dev.d4vram.downloadthis"
-!define APP_VERSION     "2.0.0"
+!define APP_VERSION     "1.0.0"
 !define APP_PUBLISHER   "D4vRAM"
 !define APP_URL         "https://github.com/D4vRAM369/downloadthis"
 !define APP_EXE         "downloadthis.exe"

@@ -20,7 +20,7 @@
       Compressed="yes"
       InstallScope="perMachine"
       Platform="x64"
-      Description="GUI para yt-dlp con diseño vintage XP Luna P2P"
+      Description="Audio downloader GUI for yt-dlp"
       Manufacturer="D4vRAM" />
 
     <MajorUpgrade
@@ -53,7 +53,7 @@
       <Component Id="ApplicationShortcut" Guid="B1C2D3E4-F5A6-7890-BCDE-F12345678901">
         <Shortcut Id="StartMenuShortcut"
                   Name="DownloadThis"
-                  Description="GUI para yt-dlp"
+                  Description="Audio downloader GUI for yt-dlp"
                   Target="[INSTALLFOLDER]downloadthis.exe"
                   WorkingDirectory="INSTALLFOLDER" />
         <RemoveFolder Id="CleanupStartMenu" On="uninstall" />

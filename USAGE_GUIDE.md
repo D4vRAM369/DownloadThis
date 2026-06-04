@@ -1,7 +1,7 @@
 # DownloadThis Pro — Guía de Uso / Usage Guide
 
 > GUI para yt-dlp con diseño vintage XP Luna P2P  
-> Versión 2.0 · D4vRAM369
+> Versión 1.0 · D4vRAM369 · audio-only
 
 ---
 
@@ -10,7 +10,7 @@
 1. [Instalación](#1-instalación--installation)
 2. [Interfaz — Qué es cada parte](#2-interfaz)
 3. [Configuración inicial (una sola vez)](#3-configuración-inicial)
-4. [Descargar un video o canción](#4-descargar-un-video-o-canción)
+4. [Extraer audio de una URL](#4-extraer-audio-de-una-url)
 5. [Descargar una Playlist completa](#5-descargar-una-playlist-completa)
 6. [Cookies para sitios con login (YouTube, etc.)](#6-cookies-para-sitios-con-login)
 7. [Opciones avanzadas](#7-opciones-avanzadas)
@@ -155,7 +155,7 @@ Se guarda en `~/.config/downloadthis/config.json`.
 
 ---
 
-## 4. Descargar un video o canción
+## 4. Extraer audio de una URL
 
 ### Flujo básico
 
@@ -193,7 +193,7 @@ Se guarda en `~/.config/downloadthis/config.json`.
 En el panel derecho, marca **"☐ Descargar Playlist completa"** antes de iniciar.
 
 > Activa `--yes-playlist --ignore-errors` en yt-dlp.  
-> `--ignore-errors` es clave: si un video está eliminado o geo-bloqueado, **lo salta y continúa**.
+> `--ignore-errors` es clave: si un elemento está eliminado o geo-bloqueado, **lo salta y continúa**.
 
 **Paso 2 — Usa la plantilla de playlist**
 
@@ -203,7 +203,7 @@ Click en **▼** junto al campo Plantilla → selecciona:
 %(playlist_index)s - %(title)s.%(ext)s
 ```
 
-Resultado: `001 - Título del video.mp3`, `002 - ...`, etc.
+Resultado: `001 - Título del audio.mp3`, `002 - ...`, etc.
 
 **Paso 3 — Pega la URL de la playlist**
 
@@ -215,25 +215,25 @@ https://www.youtube.com/playlist?list=PLxxxxx...
 
 **Paso 4 — Click "▼ DESCARGAR TODO"**
 
-La cola muestra el progreso global con sub-filas por cada video:
+La cola muestra el progreso global con sub-filas por cada elemento:
 ```
 Cola:  Playlist [47/477]  ← fila principal
-       ♪ Título video 47  ← sub-fila del elemento actual
+       ♪ Título audio 47  ← sub-fila del elemento actual
 ```
 
 ### Playlist ON vs OFF
 
 | Comportamiento | Playlist OFF | Playlist ON |
 |----------------|-------------|-------------|
-| URL con `?list=` | Descarga solo ese video | Descarga toda la lista |
-| Video inaccesible | Falla y para | Lo salta, continúa |
+| URL con `?list=` | Extrae audio solo de esa URL | Extrae audio de toda la lista |
+| Elemento inaccesible | Falla y para | Lo salta, continúa |
 | Plantilla recomendada | `%(title)s.%(ext)s` | `%(playlist_index)s - %(title)s.%(ext)s` |
 
 ---
 
 ## 6. Cookies para sitios con login
 
-Las cookies son tu sesión de YouTube exportada a un archivo. Le dicen a yt-dlp "soy este usuario logueado" sin necesidad de contraseña. Son necesarias para descargar videos de Members-only, edad restringida, o cuando YouTube bloquea la descarga.
+Las cookies son tu sesión de YouTube exportada a un archivo. Le dicen a yt-dlp "soy este usuario logueado" sin necesidad de contraseña. Son necesarias para extraer audio de contenido con login, edad restringida, o cuando YouTube bloquea la descarga.
 
 ### Opción A — Archivo Cookies.txt (recomendada)
 
@@ -259,7 +259,7 @@ Verifica que estés logueado (aparece tu foto/avatar arriba a la derecha).
 
 #### Paso 3 — Exporta las cookies
 
-1. Estando en `youtube.com` (sin navegar a ningún video específico)
+1. Estando en `youtube.com` (sin navegar a ningún contenido específico)
 2. Haz click en el ícono 🍪 de la extensión en la barra de extensiones del navegador
 3. Click en **"Export"** o **"Click here to export cookies"**
 4. Se descarga automáticamente `cookies.txt` o `youtube.com_cookies.txt`
@@ -327,7 +327,7 @@ Si ves `Sign in to confirm` → cookies expiradas, renuévalas ❌
 Añade headers HTTP que simulan un navegador real y activa cookies de Firefox automáticamente.  
 Es idempotente: hacer click dos veces no duplica los parámetros.
 
-**◈ No-DASH** — Úsalo si el video se descarga sin audio, o sale corrupto.  
+**◈ No-DASH** — Úsalo si la extracción falla, sale corrupta o yt-dlp elige un flujo problemático.
 Fuerza un formato sin DASH manifest (protocolo alternativo de streaming).
 
 > Estos botones modifican el campo **Args extra**. Para que sean permanentes, click en **💾 Guardar Configuración**.
@@ -348,7 +348,7 @@ Fuerza un formato sin DASH manifest (protocolo alternativo de streaming).
 --write-thumbnail                   # Guardar carátula como imagen separada
 --limit-rate 500K                   # Limitar velocidad a 500 KB/s
 --geo-bypass                        # Intentar saltar restricciones geográficas
---playlist-start 10 --playlist-end 50  # Descargar solo del video 10 al 50 de una lista
+--playlist-start 10 --playlist-end 50  # Extraer solo del elemento 10 al 50 de una lista
 --concurrent-fragments 4            # Descarga paralela (más rápido en conexiones rápidas)
 ```
 
@@ -366,12 +366,12 @@ La cola también se **auto-guarda al cerrar** la app y se **restaura automática
 | Error / Síntoma | Causa probable | Solución |
 |-----------------|----------------|----------|
 | `403 Forbidden` | YouTube bloquea sin cookies | Activa **⚡ Anti-403** + configura cookies |
-| `Sign in to confirm your age` | Video con restricción de edad | Configura cookies con sesión iniciada |
-| `Requested format is not available` | Video privado/eliminado en playlist | Activa **☐ Playlist completa** (incluye `--ignore-errors`) |
-| `Only images are available` | Video restringido o Short eliminado | Normal en playlists grandes — se salta con playlist ON |
-| Video sin audio | Formato DASH sin ffmpeg | `sudo apt install ffmpeg` o activa **◈ No-DASH** |
+| `Sign in to confirm your age` | Contenido con restricción de edad | Configura cookies con sesión iniciada |
+| `Requested format is not available` | Elemento privado/eliminado en playlist | Activa **☐ Playlist completa** (incluye `--ignore-errors`) |
+| `Only images are available` | Contenido restringido o Short eliminado | Normal en playlists grandes — se salta con playlist ON |
+| Audio corrupto o incompleto | Formato DASH sin ffmpeg | `sudo apt install ffmpeg` o activa **◈ No-DASH** |
 | Descarga muy lenta | Servidor limita velocidad | Añade en Args extra: `--concurrent-fragments 4` |
-| Playlist descarga solo 1 video | Checkbox desactivado | Marca **☐ Descargar Playlist completa** |
+| Playlist procesa solo 1 elemento | Checkbox desactivado | Marca **☐ Descargar Playlist completa** |
 | App no arranca | yt-dlp o ffmpeg no instalados | `pip install -U yt-dlp` · `sudo apt install ffmpeg` |
 | Cookies no funcionan | Expiradas o mal exportadas | Renueva las cookies siguiendo la [sección 6](#6-cookies-para-sitios-con-login) |
 
@@ -395,4 +395,4 @@ Menú **Archivo → Abrir carpeta de logs** para acceder directamente desde la a
 
 ---
 
-*USAGE_GUIDE v2.0 — Actualizado 2026-06-04*
+*USAGE_GUIDE v1.0 — Actualizado 2026-06-04*
