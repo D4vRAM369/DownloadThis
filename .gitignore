@@ -32,3 +32,6 @@ logs/
 *.tmp
 *.temp
 
+# Tool markers
+.codex
+
