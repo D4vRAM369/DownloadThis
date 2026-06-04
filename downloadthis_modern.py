@@ -4,6 +4,8 @@
 downloadthis_modern — GUI para yt-dlp  |  Diseño vintage P2P (XP Luna)
 """
 
+__version__ = "1.0.0"
+
 import os, re, sys, json, queue, shlex, signal, subprocess, threading
 from pathlib import Path
 import importlib
@@ -18,9 +20,7 @@ from datetime import datetime
 
 def ensure_python_packages():
     required = {
-        "ttkbootstrap": "ttkbootstrap",
-        "tkinterdnd2":  "tkinterdnd2",
-        "yt_dlp":       "yt-dlp",
+        "tkinterdnd2": "tkinterdnd2",
     }
     for module_name, pip_name in required.items():
         try:
@@ -28,12 +28,14 @@ def ensure_python_packages():
         except ImportError:
             try:
                 print(f"[SETUP] Instalando '{pip_name}'…")
-                subprocess.check_call([sys.executable, "-m", "pip", "install", pip_name])
+                subprocess.check_call([sys.executable, "-m", "pip", "install",
+                                       "--quiet", pip_name])
                 print(f"[SETUP] '{pip_name}' instalado.")
             except Exception as exc:
                 print(f"[SETUP] No se pudo instalar '{pip_name}': {exc}")
 
-ensure_python_packages()
+if __name__ == "__main__":
+    ensure_python_packages()
 
 # ============================================================
 #  OPTIONAL IMPORTS
@@ -97,7 +99,7 @@ STRICT_URL_RE = re.compile(
     )
     """
 )
-YTSEARCH_RE       = re.compile(r'(?i)\bytsearch(?::\d+)?\s*:[^\s].+')
+YTSEARCH_RE       = re.compile(r'(?i)\bytsearch(?:\d+)?\s*:\s*.+')
 PROGRESS_RE       = re.compile(r"^\[download\]\s+(\d{1,3}(?:\.\d+)?)%")
 PROGRESS_DETAIL_RE = re.compile(
     r'^\[download\]\s+(\d{1,3}(?:\.\d+)?)%\s+of\s+([^\s]+)\s+at\s+([^\s]+)\s+ETA\s+([^\s]+)'
@@ -107,6 +109,27 @@ ETA_RE            = re.compile(r'ETA\s+(\d{2}:\d{2}|\d+:\d{2}:\d{2})')
 SIZE_RE           = re.compile(r'(\d+(?:\.\d+)?[KMGT]?i?B)')
 PLAYLIST_INDEX_RE = re.compile(r'\[download\] Downloading (?:video|item) (\d+) of (\d+)')
 EXTRACT_AUDIO_RE  = re.compile(r'\[ExtractAudio\] Destination:\s*(.+)')
+
+# Flags that allow arbitrary host command execution — never accept from user input
+DANGEROUS_FLAGS = frozenset({
+    "--exec", "--exec-before-download", "--exec-after-download",
+    "--batch-file", "--config-location", "--config-locations",
+    "--load-info-json",
+})
+
+
+def is_dangerous_ytdlp_arg(token: str) -> bool:
+    """Return True when a yt-dlp arg can execute/read host-controlled inputs."""
+    flag = (token or "").split("=", 1)[0].lower()
+    return flag in DANGEROUS_FLAGS
+
+
+def parse_safe_extra_args(user_args: str):
+    tokens = shlex.split(user_args or "")
+    blocked = [t for t in tokens if is_dangerous_ytdlp_arg(t)]
+    if blocked:
+        raise ValueError(f"Dangerous flags rejected: {blocked}")
+    return tokens
 
 
 class DownloadProgress:
@@ -181,10 +204,24 @@ _deno = Path.home() / ".deno" / "bin" / "deno"
 DENO_RUNTIME_ARG = ["--js-runtimes", f"deno:{_deno}"] if _deno.exists() else []
 
 
+def _default_download_dir() -> str:
+    xdg = os.environ.get("XDG_DOWNLOAD_DIR", "").strip()
+    if xdg and Path(xdg).is_dir():
+        return xdg
+    for name in ("Downloads", "Descargas"):
+        p = Path.home() / name
+        if p.is_dir():
+            return str(p)
+    return str(Path.home() / "Downloads")
+
+
 def ensure_config():
-    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    except (PermissionError, OSError) as exc:
+        print(f"[AVISO] Config no persistente: {exc}")
     cfg = {
-        "download_dir":    str(Path.home() / "Descargas"),
+        "download_dir":    _default_download_dir(),
         "audio_quality":   "0",
         "audio_format":    "mp3",
         "cookies_file":    "",
@@ -249,6 +286,7 @@ class Downloader(threading.Thread):
         saw_413 = False
         cmd = list(cmd_tokens) + ["-P", self.outdir, self.url]
         self.log_queue.put(f"$ {' '.join(shlex.quote(c) for c in cmd)}\n")
+        rc = 1
         try:
             self.proc = subprocess.Popen(
                 cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -278,10 +316,25 @@ class Downloader(threading.Thread):
                     title = Path(m_audio.group(1).strip()).stem
                     self.log_queue.put(("playlist_sub_title", self.url, title))
                 self.log_queue.put(line)
-            return self.proc.wait(), saw_413
+            try:
+                rc = self.proc.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                rc = 1
         except Exception as e:
             self.log_queue.put(format_download_error(e, "ejecución de yt-dlp"))
-            return 1, saw_413
+        finally:
+            if self.proc:
+                if self.proc.stdout:
+                    try: self.proc.stdout.close()
+                    except Exception: pass
+                if self.proc.poll() is None:
+                    try:
+                        self.proc.terminate()
+                        self.proc.wait(timeout=10)
+                    except (subprocess.TimeoutExpired, Exception):
+                        try: self.proc.kill()
+                        except Exception: pass
+        return rc, saw_413
 
     def run(self):
         self._success = False
@@ -709,7 +762,7 @@ class App(BaseTk):
             ("Ver logs de sesión", self._open_logs_dir),
             ("Acerca de…", lambda: messagebox.showinfo(
                 "Acerca de",
-                "DownloadThis Pro\nGUI para yt-dlp\n\nRequiere yt-dlp y ffmpeg.")),
+                f"DownloadThis Pro v{__version__}\nGUI para yt-dlp\n\nRequiere yt-dlp y ffmpeg.")),
         ])
 
     def _build_toolbar(self):
@@ -1362,13 +1415,13 @@ class App(BaseTk):
     def _join_tokens(self, tokens):
         if not tokens: return ""
         try:    return shlex.join(tokens)
-        except: return " ".join(shlex.quote(t) for t in tokens)
+        except Exception: return " ".join(shlex.quote(t) for t in tokens)
 
     def _parse_extra_args(self):
         current = (self.extra_args_var.get() or "").strip()
         if not current: return []
         try:    return shlex.split(current)
-        except: return current.split()
+        except Exception: return current.split()
 
     def _apply_extra_args_delta(self, add_tokens=None, remove_tokens=None, preview=False):
         add_tokens    = list(add_tokens    or [])
@@ -1435,7 +1488,7 @@ class App(BaseTk):
     def _consider_make_default(self, attempts, variant_idx):
         if variant_idx is None or variant_idx <= 0: return
         try:    variant = attempts[variant_idx]
-        except: return
+        except Exception: return
         add_tokens    = variant.get("delta_add",    [])
         remove_tokens = variant.get("delta_remove", [])
         if not add_tokens and not remove_tokens: return
@@ -1529,7 +1582,24 @@ class App(BaseTk):
         if DENO_RUNTIME_ARG:
             cmd.extend(DENO_RUNTIME_ARG)
         if user_args:
-            cmd.extend(shlex.split(user_args))
+            try:
+                tokens = parse_safe_extra_args(user_args)
+            except ValueError as exc:
+                from tkinter import messagebox as _mb
+                try:
+                    blocked = [t for t in shlex.split(user_args)
+                               if is_dangerous_ytdlp_arg(t)]
+                except ValueError:
+                    blocked = []
+                if blocked:
+                    _mb.showerror("Arg bloqueado",
+                                  f"Flags no permitidos: {', '.join(blocked)}\n"
+                                  "Elimínalos de Args extra.")
+                else:
+                    _mb.showerror("Args extra inválidos",
+                                  "Revisa comillas y espacios en Args extra.")
+                raise exc
+            cmd.extend(tokens)
         if self.playlist_var.get():
             cmd.extend(["--yes-playlist", "--ignore-errors"])
         else:
@@ -1592,7 +1662,6 @@ class App(BaseTk):
         self._dl_stop_requested = False
         base_cmd = self._build_cmd_template()
         attempts = self._build_attempts(base_cmd)
-        self._log_line(f"[DEBUG] CMD base: {' '.join(base_cmd)}\n", "cmd")
 
         for url in list(self.urls):
             self.download_queue.put(url)
@@ -1791,7 +1860,9 @@ class App(BaseTk):
     def destroy(self):
         self._auto_save_queue()
         for t in list(self.dl_threads):
-            try: t.stop()
+            try:
+                t.stop()
+                t.join(timeout=5)
             except Exception: pass
         super().destroy()
 
