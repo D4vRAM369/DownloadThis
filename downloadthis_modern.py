@@ -105,7 +105,8 @@ PROGRESS_DETAIL_RE = re.compile(
 SPEED_RE          = re.compile(r'at\s+([0-9.]+[KMGT]?i?B/s)')
 ETA_RE            = re.compile(r'ETA\s+(\d{2}:\d{2}|\d+:\d{2}:\d{2})')
 SIZE_RE           = re.compile(r'(\d+(?:\.\d+)?[KMGT]?i?B)')
-PLAYLIST_INDEX_RE = re.compile(r'\[download\] Downloading video (\d+) of (\d+)')
+PLAYLIST_INDEX_RE = re.compile(r'\[download\] Downloading (?:video|item) (\d+) of (\d+)')
+EXTRACT_AUDIO_RE  = re.compile(r'\[ExtractAudio\] Destination:\s*(.+)')
 
 
 class DownloadProgress:
@@ -162,7 +163,22 @@ def extract_urls(text: str):
 #  CONFIG  (sin cambios)
 # ============================================================
 
-CONFIG_PATH = Path.home() / ".config" / "downloadthis" / "config.json"
+CONFIG_PATH     = Path.home() / ".config" / "downloadthis" / "config.json"
+QUEUE_SAVE_PATH = Path.home() / ".config" / "downloadthis" / "queue_autosave.json"
+
+# Prefer yt-dlp in the venv next to THIS script, not the active Python interpreter
+_script_venv_ytdlp = Path(__file__).parent / "venv" / "bin" / "yt-dlp"
+_interp_ytdlp      = Path(sys.executable).parent / "yt-dlp"
+if _script_venv_ytdlp.exists():
+    YTDLP_CMD = str(_script_venv_ytdlp)
+elif _interp_ytdlp.exists():
+    YTDLP_CMD = str(_interp_ytdlp)
+else:
+    YTDLP_CMD = "yt-dlp"
+
+# Deno path for yt-dlp JS challenge solving (n-parameter)
+_deno = Path.home() / ".deno" / "bin" / "deno"
+DENO_RUNTIME_ARG = ["--js-runtimes", f"deno:{_deno}"] if _deno.exists() else []
 
 
 def ensure_config():
@@ -251,6 +267,16 @@ class Downloader(threading.Thread):
                                             int(float(progress_info.percent))))
                     except (ValueError, TypeError):
                         pass
+                # Detect new playlist item start
+                m_item = PLAYLIST_INDEX_RE.search(line.strip())
+                if m_item:
+                    self.log_queue.put(("playlist_sub_start", self.url,
+                                        int(m_item.group(1)), int(m_item.group(2))))
+                # Detect audio extraction = song title
+                m_audio = EXTRACT_AUDIO_RE.search(line.strip())
+                if m_audio:
+                    title = Path(m_audio.group(1).strip()).stem
+                    self.log_queue.put(("playlist_sub_title", self.url, title))
                 self.log_queue.put(line)
             return self.proc.wait(), saw_413
         except Exception as e:
@@ -585,6 +611,8 @@ class App(BaseTk):
         self.item_status      = {}
         self.progress         = {}
         self.progress_details = {}
+        self._playlist_current_sub: dict = {}  # parent_url → current sub_item_id
+        self._playlist_sub_count:   dict = {}  # parent_url → total items
         self.download_queue   = queue.Queue()
         self.log_queue        = queue.Queue()
         self.active_dl        = None
@@ -608,6 +636,7 @@ class App(BaseTk):
         self.after(80,  self._drain_log_queue)
         self._check_dependencies()
         self._bind_shortcuts()
+        self.after(500, self._auto_load_queue)
 
         if len(sys.argv) > 1:
             for arg in sys.argv[1:]:
@@ -1122,15 +1151,6 @@ class App(BaseTk):
         self._update_statusbars()
         return count
 
-    def _format_item_text(self, url):
-        """Conservado por compatibilidad; ya no conduce el renderizado."""
-        prefix_map = {"pending": "⏳", "downloading": "⬇", "ok": "✓", "error": "✗"}
-        state  = self.item_status.get(url, "pending")
-        prefix = prefix_map.get(state, "•")
-        pct    = self.progress.get(url)
-        pct_text = f" {pct}%" if pct is not None and state == "downloading" else ""
-        return f"{prefix}{pct_text} {url}"
-
     def _refresh_item_display(self, url):
         if url not in self.urls:
             return
@@ -1291,7 +1311,7 @@ class App(BaseTk):
 
     def _check_dependencies(self):
         for name, cmd, critical, hint in [
-            ("yt-dlp", ["yt-dlp", "--version"], True,  "Instala 'yt-dlp'."),
+            ("yt-dlp", [YTDLP_CMD, "--version"], True,  "Instala 'yt-dlp'."),
             ("ffmpeg", ["ffmpeg", "-version"],  True,  "Instala 'ffmpeg'."),
         ]:
             try:
@@ -1403,9 +1423,12 @@ class App(BaseTk):
             "--user-agent", "Mozilla/5.0",
             "--extractor-args", "youtube:player_client=web,ssap=ignore",
         ]
-        current  = (self.extra_args_var.get() or "").strip()
-        new_args = (current + " " + " ".join(pieces)).strip() if current else " ".join(pieces)
-        self.extra_args_var.set(new_args)
+        before = (self.extra_args_var.get() or "").strip()
+        new_string = self._apply_extra_args_delta(pieces, preview=True)
+        if new_string == before:
+            messagebox.showinfo("Anti-403", "Preset ya aplicado en Args extra.")
+            return
+        self._apply_extra_args_delta(pieces)
         self._log_line(
             f"[*] Preset anti-403 aplicado. Cookies: {self.browser_var.get()}.\n", "info")
 
@@ -1485,7 +1508,7 @@ class App(BaseTk):
         q        = self.quality_var.get().strip()  or "0"
         template = self.template_var.get().strip() or "%(title)s.%(ext)s"
         cmd = [
-            "yt-dlp", "-f", "bestaudio/best",
+            YTDLP_CMD, "-f", "bestaudio/best",
             "--extract-audio",
             "--audio-format", fmt,
             "--audio-quality", q,
@@ -1502,10 +1525,15 @@ class App(BaseTk):
             self._log_line(f"[*] Cookies desde navegador: {browser}\n", "info")
         user_args = (self.extra_args_var.get().strip()
                      if hasattr(self, "extra_args_var") else "")
-        if "--extractor-args" not in user_args:
-            cmd.extend(["--extractor-args", "youtube:player_client=android"])
+        # No forzamos player_client — yt-dlp elige el mejor disponible automáticamente
+        if DENO_RUNTIME_ARG:
+            cmd.extend(DENO_RUNTIME_ARG)
         if user_args:
             cmd.extend(shlex.split(user_args))
+        if self.playlist_var.get():
+            cmd.extend(["--yes-playlist", "--ignore-errors"])
+        else:
+            cmd.extend(["--no-playlist"])
         return cmd
 
     def _build_attempts(self, base_cmd):
@@ -1534,9 +1562,6 @@ class App(BaseTk):
         if self.aria2_available:
             add_v(list(base_cmd) + aria, aria)
         return attempts
-
-    def _update_queue_status(self, index, prefix):
-        pass  # reemplazado por CanvasQueue.update_item
 
     def _stop_all(self):
         self._dl_stop_requested = True
@@ -1603,6 +1628,11 @@ class App(BaseTk):
                 self.dl_threads.discard(thread_obj)
                 self.active_dl = None
                 def apply_st():
+                    sub_id = self._playlist_current_sub.pop(url, None)
+                    if sub_id:
+                        self.canvas_queue.update_item(sub_id,
+                            status="ok" if success else "error",
+                            progress=100.0, speed="—", eta="—")
                     self._set_item_status(url, "ok" if success else "error")
                     if success:
                         self._consider_make_default(attempts, variant_idx)
@@ -1626,7 +1656,10 @@ class App(BaseTk):
                     kind, *payload = item
                     if kind == "progress":
                         url, percent = payload
-                        if url in self.urls:
+                        sub_id = self._playlist_current_sub.get(url)
+                        if sub_id:
+                            self.canvas_queue.update_item(sub_id, progress=float(percent))
+                        elif url in self.urls:
                             self.progress[url] = percent
                             if self.item_status.get(url) != "downloading":
                                 self._set_item_status(url, "downloading")
@@ -1634,7 +1667,16 @@ class App(BaseTk):
                                 self._refresh_item_display(url)
                     elif kind == "progress_detailed":
                         url, info = payload
-                        if url in self.urls:
+                        sub_id = self._playlist_current_sub.get(url)
+                        if sub_id:
+                            kw = {"progress": float(info.percent) if info.percent is not None else 0}
+                            if info.speed: kw["speed"] = info.speed
+                            if info.eta:   kw["eta"]   = info.eta
+                            if info.size:  kw["size"]  = info.size
+                            self.canvas_queue.update_item(sub_id, **kw)
+                            if info.speed:
+                                self.sb_dest_var.set(f"↓ {info.speed} · {self.dest_var.get().strip()}")
+                        elif url in self.urls:
                             self.progress_details[url] = info
                             if info.percent is not None:
                                 self.progress[url] = int(info.percent)
@@ -1651,6 +1693,36 @@ class App(BaseTk):
                             if info.speed:
                                 self.sb_dest_var.set(
                                     f"↓ {info.speed} · {self.dest_var.get().strip()}")
+                    elif kind == "playlist_sub_start":
+                        parent_url, item_num, item_total = payload
+                        # Mark previous sub-item as done
+                        prev_sub = self._playlist_current_sub.get(parent_url)
+                        if prev_sub:
+                            self.canvas_queue.update_item(prev_sub, status="ok",
+                                                          progress=100.0, speed="—", eta="—")
+                        # Create new sub-item row
+                        sub_id = f"__sub__{item_num}__{parent_url}"
+                        self._playlist_current_sub[parent_url] = sub_id
+                        self._playlist_sub_count[parent_url]   = item_total
+                        self.canvas_queue.add_item({
+                            "id":       sub_id,
+                            "name":     f"  [{item_num}/{item_total}] Cargando...",
+                            "size":     "—",
+                            "progress": 0.0,
+                            "speed":    "—",
+                            "eta":      "—",
+                            "status":   "downloading",
+                        })
+                        # Update parent row
+                        if parent_url in self.urls:
+                            self.canvas_queue.update_item(parent_url,
+                                name=f"Playlist [{item_num}/{item_total}]",
+                                status="downloading")
+                    elif kind == "playlist_sub_title":
+                        parent_url, title = payload
+                        sub_id = self._playlist_current_sub.get(parent_url)
+                        if sub_id:
+                            self.canvas_queue.update_item(sub_id, name=f"  ♪ {title}")
                     continue
                 line = item
                 tag  = None
@@ -1663,7 +1735,61 @@ class App(BaseTk):
             pass
         self.after(80, self._drain_log_queue)
 
+    def _auto_save_queue(self):
+        try:
+            entries = [
+                {"url": u, "status": self.item_status.get(u, "pending")}
+                for u in self.urls
+                if not u.startswith("__sub__")
+            ]
+            data = {"saved_at": datetime.now().isoformat(), "entries": entries}
+            QUEUE_SAVE_PATH.parent.mkdir(parents=True, exist_ok=True)
+            QUEUE_SAVE_PATH.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        except Exception:
+            pass
+
+    def _auto_load_queue(self):
+        if not QUEUE_SAVE_PATH.exists():
+            return
+        try:
+            data    = json.loads(QUEUE_SAVE_PATH.read_text(encoding="utf-8"))
+            entries = data.get("entries", [])
+            if not entries:
+                return
+            n_ok = n_pend = n_err = 0
+            for entry in entries:
+                url    = entry.get("url", "").strip()
+                status = entry.get("status", "pending")
+                if not url or url in self.urls:
+                    continue
+                self.urls.append(url)
+                self.item_status[url] = status
+                pct = 100.0 if status == "ok" else 0.0
+                self.progress[url] = pct if status != "ok" else None
+                self.canvas_queue.add_item({
+                    "id":       url,
+                    "name":     self._short_name(url),
+                    "size":     "—",
+                    "progress": pct,
+                    "speed":    "—",
+                    "eta":      "—",
+                    "status":   status,
+                })
+                if   status == "ok":    n_ok   += 1
+                elif status == "error": n_err  += 1
+                else:                   n_pend += 1
+            self._update_statusbars()
+            parts = []
+            if n_pend: parts.append(f"{n_pend} pendiente{'s' if n_pend>1 else ''}")
+            if n_ok:   parts.append(f"{n_ok} completada{'s' if n_ok>1 else ''}")
+            if n_err:  parts.append(f"{n_err} con error")
+            if parts:
+                self._log_line(f"[*] Cola restaurada: {', '.join(parts)}.\n", "info")
+        except Exception:
+            pass
+
     def destroy(self):
+        self._auto_save_queue()
         for t in list(self.dl_threads):
             try: t.stop()
             except Exception: pass
