@@ -1,0 +1,45 @@
+version: 1
+
+AppDir:
+  path: ./AppDir
+
+  app_info:
+    id: dev.d4vram.downloadthis
+    name: DownloadThis
+    icon: dev.d4vram.downloadthis
+    version: 1.0.0
+    exec: usr/bin/python3
+    exec_args: "$APPDIR/usr/lib/downloadthis/downloadthis_modern.py $@"
+
+  apt:
+    arch: amd64
+    sources:
+      - sourceline: 'deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse'
+    include:
+      - python3
+      - python3-tk
+      - python3-pip
+      - python3-venv
+      - ffmpeg
+      - libpython3.10
+      - tk
+      - tcl
+    exclude: []
+
+  files:
+    include: []
+    exclude:
+      - usr/share/man
+      - usr/share/doc/*/README.*
+      - usr/share/doc/*/changelog.*
+      - usr/share/doc/*/NEWS.*
+      - usr/share/doc/*/TODO.*
+
+  runtime:
+    env:
+      APPDIR_LIBRARY_PATH: $APPDIR/usr/lib/x86_64-linux-gnu:$APPDIR/usr/lib
+      PYTHONPATH: $APPDIR/usr/lib/python3/dist-packages:$APPDIR/usr/local/lib/python3.10/dist-packages
+
+AppImage:
+  arch: x86_64
+  name: DownloadThis-1.0.0-x86_64.AppImage

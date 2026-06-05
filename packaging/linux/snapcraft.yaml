@@ -1,0 +1,50 @@
+name: downloadthis
+base: core22
+version: '1.0.0'
+summary: Audio downloader GUI for yt-dlp
+description: |
+  DownloadThis Pro is a graphical interface for yt-dlp. Extract audio
+  from YouTube, SoundCloud and 1000+ sites. Supports mp3, flac, opus,
+  m4a and wav. Features a download queue with real-time progress bars,
+  cookie support, playlist downloads, and a Windows XP / P2P retro design.
+
+grade: stable
+confinement: strict
+
+architectures:
+  - build-on: amd64
+
+layout:
+  /usr/lib/x86_64-linux-gnu/libpython3.10.so.1.0:
+    bind-file: $SNAP/usr/lib/x86_64-linux-gnu/libpython3.10.so.1.0
+
+apps:
+  downloadthis:
+    command: bin/downloadthis
+    extensions: [gnome]
+    plugs:
+      - home
+      - network
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
+
+parts:
+  downloadthis:
+    plugin: python
+    source: .
+    python-packages:
+      - tkinterdnd2
+      - yt-dlp
+    stage-packages:
+      - python3-tk
+      - ffmpeg
+      - aria2
+    override-build: |
+      craftctl default
+      install -Dm644 downloadthis_modern.py $CRAFT_PART_INSTALL/lib/python3.10/site-packages/downloadthis_modern.py
+      mkdir -p $CRAFT_PART_INSTALL/bin
+      printf '#!/bin/sh\nexec python3 $SNAP/lib/python3.10/site-packages/downloadthis_modern.py "$@"\n' \
+        > $CRAFT_PART_INSTALL/bin/downloadthis
+      chmod +x $CRAFT_PART_INSTALL/bin/downloadthis

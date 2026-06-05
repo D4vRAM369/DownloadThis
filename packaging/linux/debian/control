@@ -1,0 +1,19 @@
+Source: downloadthis
+Section: net
+Priority: optional
+Maintainer: D4vRAM <d4vram369@github.com>
+Build-Depends: debhelper-compat (= 13), python3 (>= 3.9)
+Standards-Version: 4.6.2
+Homepage: https://github.com/D4vRAM369/downloadthis
+Rules-Requires-Root: no
+
+Package: downloadthis
+Architecture: all
+Depends: ${misc:Depends}, python3 (>= 3.9), python3-pip, ffmpeg,
+ python3-tk, python3-venv
+Recommends: aria2
+Description: audio downloader GUI for yt-dlp
+ DownloadThis Pro is a graphical interface for yt-dlp. Extract audio
+ from YouTube, SoundCloud and 1000+ sites. Supports mp3, flac, opus,
+ m4a and wav. Features a download queue with real-time progress bars,
+ cookie support, playlist downloads, and a Windows XP / P2P retro design.

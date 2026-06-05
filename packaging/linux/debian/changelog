@@ -1,0 +1,9 @@
+downloadthis (1.0.0-1) unstable; urgency=medium
+
+  * Initial public audio-only release
+  * GUI for yt-dlp with vintage XP Luna P2P aesthetic
+  * Download queue with real-time progress bars
+  * Cookie support (browser + cookies.txt file)
+  * Playlist downloads with per-item tracking
+
+ -- D4vRAM <d4vram369@github.com>  Wed, 04 Jun 2026 00:00:00 +0000

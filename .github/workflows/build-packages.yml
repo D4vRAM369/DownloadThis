@@ -1,0 +1,89 @@
+name: Build packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install .deb build tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y dpkg-dev debhelper fakeroot python3-venv ffmpeg
+
+      - name: Build .deb
+        run: bash packaging/build-deb.sh
+
+      - name: Install appimage-builder
+        run: pip install appimage-builder
+
+      - name: Build AppImage
+        run: bash packaging/build-appimage.sh
+
+      - name: Install RPM tools
+        run: sudo apt-get install -y rpm
+
+      - name: Build RPM
+        run: bash packaging/build-rpm.sh
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages
+          path: dist/
+
+  build-flatpak:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install flatpak-builder
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y flatpak flatpak-builder
+          sudo flatpak remote-add --if-not-exists flathub \
+            https://dl.flathub.org/repo/flathub.flatpakrepo
+          sudo flatpak install -y flathub \
+            org.gnome.Platform//47 \
+            org.gnome.Sdk//47 \
+            org.freedesktop.Sdk.Extension.python312//23.08
+
+      - name: Build Flatpak
+        run: bash packaging/build-flatpak.sh
+
+      - name: Upload Flatpak artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flatpak-bundle
+          path: dist/*.flatpak
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [build-linux, build-flatpak]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/**
+          generate_release_notes: true

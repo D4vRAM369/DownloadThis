@@ -1,0 +1,17 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+override_dh_auto_install:
+	install -Dm755 downloadthis_modern.py \
+		debian/downloadthis/usr/lib/downloadthis/downloadthis_modern.py
+	install -Dm755 packaging/linux/launcher.sh \
+		debian/downloadthis/usr/bin/downloadthis
+	install -Dm644 packaging/linux/dev.d4vram.downloadthis.desktop \
+		debian/downloadthis/usr/share/applications/dev.d4vram.downloadthis.desktop
+	install -Dm644 packaging/icon.png \
+		debian/downloadthis/usr/share/icons/hicolor/256x256/apps/dev.d4vram.downloadthis.png
+
+override_dh_auto_test:
+	python3 -m py_compile downloadthis_modern.py
+	python3 -m unittest discover -s tests -v
