@@ -38,10 +38,23 @@ modules:
       - |
         cat > /app/bin/appstream-compose << 'EOF'
         #!/bin/bash
+        args=()
+        while [ "$#" -gt 0 ]; do
+            arg="$1"
+            shift
+            case "$arg" in
+                --basename=*) args+=("--components=${arg#--basename=}") ;;
+                --basename)
+                    args+=("--components=$1")
+                    shift
+                    ;;
+                *) args+=("$arg") ;;
+            esac
+        done
         if [ -x /usr/libexec/appstreamcli-compose ]; then
-            exec /usr/libexec/appstreamcli-compose "$@"
+            exec /usr/libexec/appstreamcli-compose "${args[@]}"
         fi
-        exec appstreamcli compose "$@"
+        exec appstreamcli compose "${args[@]}"
         EOF
       - chmod +x /app/bin/appstream-compose
       - install -Dm755 downloadthis_modern.py /app/bin/downloadthis_modern.py
