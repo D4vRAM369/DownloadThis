@@ -34,6 +34,8 @@ logs/
 
 # Tool markers
 .codex
+.agents/
+.claude/
 
 # Packaging/build artifacts
 .flatpak-builder/

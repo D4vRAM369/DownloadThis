@@ -46,7 +46,7 @@ modules:
       - chmod +x /app/bin/downloadthis
       - install -Dm644 packaging/linux/dev.d4vram.downloadthis.desktop
             /app/share/applications/dev.d4vram.downloadthis.desktop
-      - install -Dm644 packaging/icon.png
+      - install -Dm644 packaging/assets/icon.png
             /app/share/icons/hicolor/256x256/apps/dev.d4vram.downloadthis.png
     sources:
       - type: dir

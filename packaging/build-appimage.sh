@@ -27,7 +27,7 @@ python3 -m pip install --quiet --target "$APPDIR/usr/local/lib/python3.10/dist-p
 
 cp packaging/linux/dev.d4vram.downloadthis.desktop \
     "$APPDIR/usr/share/applications/"
-cp packaging/icon.png \
+cp packaging/assets/icon.png \
     "$APPDIR/usr/share/icons/hicolor/256x256/apps/dev.d4vram.downloadthis.png"
 
 appimage-builder --recipe packaging/linux/AppImageBuilder.yml --skip-test

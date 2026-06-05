@@ -26,7 +26,7 @@ cookie support, playlist downloads, and a Windows XP / P2P retro design.
 install -Dm644 downloadthis_modern.py %{buildroot}/usr/lib/downloadthis/downloadthis_modern.py
 install -Dm644 packaging/linux/dev.d4vram.downloadthis.desktop \
     %{buildroot}/usr/share/applications/dev.d4vram.downloadthis.desktop
-install -Dm644 packaging/icon.png \
+install -Dm644 packaging/assets/icon.png \
     %{buildroot}/usr/share/icons/hicolor/256x256/apps/dev.d4vram.downloadthis.png
 install -Dm644 LICENSE %{buildroot}/usr/share/licenses/%{name}/LICENSE
 

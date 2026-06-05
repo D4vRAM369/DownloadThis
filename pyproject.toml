@@ -35,7 +35,6 @@ classifiers = [
     "Topic :: Multimedia :: Sound/Audio",
 ]
 dependencies = [
-    "ttkbootstrap>=1.10",
     "tkinterdnd2>=0.3",
     "yt-dlp>=2024.1",
 ]
