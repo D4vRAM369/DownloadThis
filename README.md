@@ -27,6 +27,11 @@ Sin tracking. Sin cuenta. Sin nada subido a ningún servidor. Todo corre en loca
 
 Nació como proyecto personal porque las GUIs que existían eran o demasiado básicas o demasiado infladas. Esta hace lo que necesito, con un diseño que recuerda a los clientes P2P de los 2000s — eMule, Ares, DC++ — porque ese estilo tiene algo que las apps modernas han perdido: claridad brutal.
 
+
+<img width="640" height="480" alt="DownloadThis, how it looks" src="https://github.com/user-attachments/assets/cf1f5a2a-0c5e-4ac7-bc42-00b38e3454e5" />
+
+_Como luce DownloadThis!_
+
 ---
 
 ## Características
@@ -177,6 +182,10 @@ DownloadThis is a graphical interface for [yt-dlp](https://github.com/yt-dlp/yt-
 No tracking, no account needed, nothing gets uploaded anywhere. Everything runs locally.
 
 It started as a personal project because existing GUIs were either too basic or too bloated. This one does what I need, with a design that echoes P2P clients from the 2000s — eMule, Ares, DC++ — because that aesthetic has something modern apps have lost: brutal clarity.
+
+<img width="640" height="480" alt="DownloadThis, how it looks" src="https://github.com/user-attachments/assets/cf1f5a2a-0c5e-4ac7-bc42-00b38e3454e5" />
+
+_How it looks DownloadThis!_
 
 ---
 
