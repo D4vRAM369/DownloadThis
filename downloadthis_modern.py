@@ -679,6 +679,7 @@ class App(BaseTk):
         self.geometry("980x720")
         self.minsize(860, 600)
         self.configure(bg=BG_MAIN)
+        self._set_icon()
 
         self.cfg              = ensure_config()
         self.clipboard_last   = ""
@@ -717,6 +718,22 @@ class App(BaseTk):
         if len(sys.argv) > 1:
             for arg in sys.argv[1:]:
                 self._add_urls_from_text(arg)
+
+    def _set_icon(self):
+        candidates = [
+            Path(__file__).parent / "packaging/assets/icon128x128.png",
+            Path("/usr/share/icons/hicolor/128x128/apps/dev.d4vram.downloadthis.png"),
+            Path("/usr/share/icons/hicolor/256x256/apps/dev.d4vram.downloadthis.png"),
+            Path("/app/share/icons/hicolor/256x256/apps/dev.d4vram.downloadthis.png"),
+        ]
+        for p in candidates:
+            if p.is_file():
+                try:
+                    img = tk.PhotoImage(file=str(p))
+                    self.iconphoto(True, img)
+                except Exception:
+                    pass
+                break
 
     # ── UI BUILDERS ─────────────────────────────────────────
 
