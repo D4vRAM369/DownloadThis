@@ -110,6 +110,8 @@ SIZE_RE           = re.compile(r'(\d+(?:\.\d+)?[KMGT]?i?B)')
 PLAYLIST_INDEX_RE = re.compile(r'\[download\] Downloading (?:video|item) (\d+) of (\d+)')
 EXTRACT_AUDIO_RE  = re.compile(r'\[ExtractAudio\] Destination:\s*(.+)')
 DOWNLOAD_DEST_RE  = re.compile(r'\[download\] Destination:\s*(.+)')
+EMBED_THUMB_RE    = re.compile(r'\[EmbedThumbnail\] ffmpeg: Adding thumbnail to "(.+)"')
+ALREADY_DL_RE     = re.compile(r'\[download\] (.+) has already been downloaded')
 
 # Flags that allow arbitrary host command execution — never accept from user input
 DANGEROUS_FLAGS = frozenset({
@@ -312,12 +314,25 @@ class Downloader(threading.Thread):
                 if m_item:
                     self.log_queue.put(("playlist_sub_start", self.url,
                                         int(m_item.group(1)), int(m_item.group(2))))
-                # Detect title: [download] Destination fires early (reliable)
+                # Title detection — ordered from most-reliable to fallback.
+                # EmbedThumbnail fires for every item (cached + fresh), always
+                # before the next playlist_sub_start, so _playlist_current_sub
+                # still points to the correct sub-item when we process it.
+                m_embed = EMBED_THUMB_RE.search(line.strip())
+                if m_embed:
+                    title = Path(m_embed.group(1).strip()).stem
+                    self.log_queue.put(("playlist_sub_title", self.url, title))
+                # Already-downloaded: fires early in cached runs (before EmbedThumbnail)
+                m_cached = ALREADY_DL_RE.search(line.strip())
+                if m_cached:
+                    title = Path(m_cached.group(1).strip()).stem
+                    self.log_queue.put(("playlist_sub_title", self.url, title))
+                # [download] Destination: fires for fresh downloads before progress bars
                 m_dest = DOWNLOAD_DEST_RE.search(line.strip())
                 if m_dest:
                     title = Path(m_dest.group(1).strip()).stem
                     self.log_queue.put(("playlist_sub_title", self.url, title))
-                # Fallback: [ExtractAudio] Destination for formats that skip direct download
+                # [ExtractAudio] Destination: fallback for explicit format conversion
                 m_audio = EXTRACT_AUDIO_RE.search(line.strip())
                 if m_audio:
                     title = Path(m_audio.group(1).strip()).stem
