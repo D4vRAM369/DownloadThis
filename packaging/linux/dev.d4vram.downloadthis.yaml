@@ -35,6 +35,15 @@ modules:
   - name: downloadthis
     buildsystem: simple
     build-commands:
+      - |
+        cat > /app/bin/appstream-compose << 'EOF'
+        #!/bin/bash
+        if [ -x /usr/libexec/appstreamcli-compose ]; then
+            exec /usr/libexec/appstreamcli-compose "$@"
+        fi
+        exec appstreamcli compose "$@"
+        EOF
+      - chmod +x /app/bin/appstream-compose
       - install -Dm755 downloadthis_modern.py /app/bin/downloadthis_modern.py
       - |
         cat > /app/bin/downloadthis << 'EOF'
