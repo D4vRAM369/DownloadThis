@@ -13,20 +13,45 @@ command -v flatpak-builder >/dev/null 2>&1 || {
     exit 1
 }
 
-command -v appstream-compose >/dev/null 2>&1 || {
+ensure_appstream_compose() {
+    command -v appstream-compose >/dev/null 2>&1 && return 0
+
+    local tool_dir="$ROOT/.flatpak-tools/bin"
+    mkdir -p "$tool_dir"
+
+    if [ -x /usr/libexec/appstreamcli-compose ]; then
+        cat > "$tool_dir/appstream-compose" << 'EOF'
+#!/usr/bin/env bash
+exec /usr/libexec/appstreamcli-compose "$@"
+EOF
+        chmod +x "$tool_dir/appstream-compose"
+        export PATH="$tool_dir:$PATH"
+        return 0
+    fi
+
+    if command -v appstreamcli >/dev/null 2>&1; then
+        cat > "$tool_dir/appstream-compose" << 'EOF'
+#!/usr/bin/env bash
+exec appstreamcli compose "$@"
+EOF
+        chmod +x "$tool_dir/appstream-compose"
+        export PATH="$tool_dir:$PATH"
+        return 0
+    fi
+
     echo "ERROR: appstream-compose not found."
-    echo "Run: sudo apt install appstream-compose"
+    echo "Run: sudo apt install appstream-compose appstream"
     exit 1
 }
+
+ensure_appstream_compose
 
 # Ensure flathub remote and required runtimes
 flatpak remote-add --user --if-not-exists flathub \
     https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
 flatpak install --user --noninteractive --or-update flathub \
     org.freedesktop.Platform//24.08 \
-    org.freedesktop.Sdk//24.08 2>/dev/null || {
-    echo "WARN: some runtimes failed to install — build may fail"
-}
+    org.freedesktop.Sdk//24.08
 
 MANIFEST="$ROOT/packaging/linux/dev.d4vram.downloadthis.yaml"
 BUILDDIR="$ROOT/.flatpak-builder/build"
