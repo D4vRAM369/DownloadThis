@@ -37,17 +37,6 @@ def ensure_python_packages():
 if __name__ == "__main__":
     ensure_python_packages()
 
-# ============================================================
-#  OPTIONAL IMPORTS
-# ============================================================
-
-# ttkbootstrap importado pero no usado para widgets —
-# usamos raw tk.* para control total de colores (XP Luna)
-try:
-    import ttkbootstrap  # noqa: F401
-    TTKBOOTSTRAP_AVAILABLE = True
-except ImportError:
-    TTKBOOTSTRAP_AVAILABLE = False
 
 try:
     from tkinterdnd2 import TkinterDnD, DND_FILES, DND_TEXT
