@@ -58,6 +58,12 @@ BUILDDIR="$ROOT/.flatpak-builder/build"
 REPODIR="$ROOT/.flatpak-builder/repo"
 OUTDIR="$ROOT/dist"
 mkdir -p "$OUTDIR"
+mkdir -p "$REPODIR"
+
+if [ ! -d "$REPODIR/objects" ]; then
+    ostree --repo="$REPODIR" init --mode=archive-z2
+fi
+ostree --repo="$REPODIR" config set core.min-free-space-percent 0
 
 cd "$ROOT"
 
