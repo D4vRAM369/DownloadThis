@@ -62,6 +62,15 @@ jobs:
         run: |
           sudo apt-get update -q
           sudo apt-get install -y flatpak flatpak-builder appstream-compose appstream
+          if ! command -v appstream-compose >/dev/null 2>&1; then
+            if [ -x /usr/libexec/appstreamcli-compose ]; then
+              sudo ln -sf /usr/libexec/appstreamcli-compose /usr/bin/appstream-compose
+            else
+              printf '#!/usr/bin/env sh\nexec appstreamcli compose "$@"\n' | sudo tee /usr/bin/appstream-compose >/dev/null
+              sudo chmod +x /usr/bin/appstream-compose
+            fi
+          fi
+          appstream-compose --version || true
           sudo flatpak remote-add --if-not-exists flathub \
             https://dl.flathub.org/repo/flathub.flatpakrepo
           sudo flatpak install -y flathub \
