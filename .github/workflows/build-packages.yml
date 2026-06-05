@@ -122,12 +122,14 @@ jobs:
           where candle
           where light
           mkdir obj 2>nul
-          heat dir dist\downloadthis ^
+          set APP_SOURCE=%CD%\dist\downloadthis
+          heat dir "%APP_SOURCE%" ^
             -cg AppFiles -gg -scom -sreg -sfrag -srd ^
-            -dr INSTALLFOLDER -out obj\AppFiles.wxs
+            -dr INSTALLFOLDER -var var.AppSourceDir -out obj\AppFiles.wxs
           candle -arch x64 ^
             -dVERSION=1.0.0 ^
             -dICON_ICO=packaging\icon.ico ^
+            -dAppSourceDir="%APP_SOURCE%" ^
             packaging\windows\installer.wxs obj\AppFiles.wxs ^
             -out obj\
           light -ext WixUIExtension ^
