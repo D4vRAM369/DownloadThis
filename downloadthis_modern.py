@@ -221,6 +221,7 @@ def ensure_config():
     except (PermissionError, OSError) as exc:
         print(f"[AVISO] Config no persistente: {exc}")
     cfg = {
+        "schema_version":  1,
         "download_dir":    _default_download_dir(),
         "audio_quality":   "0",
         "audio_format":    "mp3",
@@ -670,6 +671,7 @@ class App(BaseTk):
         self.log_queue        = queue.Queue()
         self.active_dl        = None
         self.dl_threads       = set()
+        self._threads_lock    = threading.Lock()
         self.ytdlp_available  = True
         self.ffmpeg_available = True
         self.aria2_available  = True
@@ -1638,7 +1640,9 @@ class App(BaseTk):
         while True:
             try: self.download_queue.get_nowait()
             except queue.Empty: break
-        for t in list(self.dl_threads):
+        with self._threads_lock:
+            threads_snap = list(self.dl_threads)
+        for t in threads_snap:
             try: t.stop()
             except Exception: pass
         self.start_btn.configure(state="normal")
@@ -1658,6 +1662,20 @@ class App(BaseTk):
             return
         if not self._validate_template():
             return
+
+        cookies_file = self.cookies_file_var.get().strip()
+        if cookies_file:
+            _cf = Path(cookies_file).resolve()
+            if not _cf.is_file():
+                messagebox.showerror("Cookies.txt no encontrado",
+                                     f"No se encontró:\n{cookies_file}\n\n"
+                                     "Verifica la ruta o selecciona el archivo de nuevo.")
+                return
+            if _cf.stat().st_size > 10 * 1024 * 1024:
+                messagebox.showerror("Cookies.txt inválido",
+                                     "El archivo es demasiado grande (>10 MB).\n"
+                                     "Probablemente no es un cookies.txt válido.")
+                return
 
         self._dl_stop_requested = False
         base_cmd = self._build_cmd_template()
@@ -1694,7 +1712,8 @@ class App(BaseTk):
                 return
 
             def done_cb(thread_obj, success, variant_idx):
-                self.dl_threads.discard(thread_obj)
+                with self._threads_lock:
+                    self.dl_threads.discard(thread_obj)
                 self.active_dl = None
                 def apply_st():
                     sub_id = self._playlist_current_sub.pop(url, None)
@@ -1708,10 +1727,17 @@ class App(BaseTk):
                 self.after(0, apply_st)
                 self.after(100, next_download)
 
+            if not self.ffmpeg_available:
+                self._log_line("[ERROR] ffmpeg no encontrado — necesario para extraer audio. Instálalo y reinicia.\n", "error")
+                self._set_item_status(url, "error")
+                self.after(0, next_download)
+                return
+
             dl = Downloader(url, outdir, attempts, self.log_queue, done_cb)
             self._set_item_status(url, "downloading")
             self.active_dl = dl
-            self.dl_threads.add(dl)
+            with self._threads_lock:
+                self.dl_threads.add(dl)
             dl.start()
             self._update_statusbars()
 
@@ -1719,7 +1745,7 @@ class App(BaseTk):
 
     def _drain_log_queue(self):
         try:
-            while True:
+            for _ in range(50):
                 item = self.log_queue.get_nowait()
                 if isinstance(item, tuple):
                     kind, *payload = item
@@ -1859,7 +1885,9 @@ class App(BaseTk):
 
     def destroy(self):
         self._auto_save_queue()
-        for t in list(self.dl_threads):
+        with self._threads_lock:
+            threads_snap = list(self.dl_threads)
+        for t in threads_snap:
             try:
                 t.stop()
                 t.join(timeout=5)
