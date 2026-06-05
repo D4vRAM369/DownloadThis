@@ -2,6 +2,8 @@ name: Build packages
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
   workflow_dispatch:
@@ -14,10 +16,10 @@ jobs:
   build-linux:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -45,7 +47,7 @@ jobs:
         run: bash packaging/build-portableapp.sh
 
       - name: Upload Linux artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: linux-packages
           path: dist/
@@ -54,7 +56,7 @@ jobs:
   build-flatpak:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install flatpak-builder
         run: |
@@ -71,22 +73,23 @@ jobs:
         run: bash packaging/build-flatpak.sh
 
       - name: Upload Flatpak artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: flatpak-bundle
           path: dist/*.flatpak
 
   # ── Windows: NSIS setup.exe · MSI · PortableApp zip ──────────
   build-windows:
-    runs-on: windows-latest
+    # windows-latest is moving to Windows Server 2025 in 2026, where NSIS is not preinstalled.
+    runs-on: windows-2022
     defaults:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -140,7 +143,7 @@ jobs:
           rm -rf "$PORTDIR"
 
       - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: windows-packages
           path: dist/
@@ -152,7 +155,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: dist/
           merge-multiple: true
