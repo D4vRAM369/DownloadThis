@@ -27,6 +27,8 @@ cp "$ROOT/downloadthis_modern.py" "$PKGROOT/usr/lib/downloadthis/"
 install -m755 "$ROOT/packaging/linux/launcher.sh" "$PKGROOT/usr/bin/downloadthis"
 cp "$ROOT/packaging/linux/dev.d4vram.downloadthis.desktop" \
     "$PKGROOT/usr/share/applications/"
+sed -i 's|^Exec=downloadthis|Exec=/usr/bin/downloadthis|' \
+    "$PKGROOT/usr/share/applications/dev.d4vram.downloadthis.desktop"
 cp "$ROOT/packaging/linux/dev.d4vram.downloadthis.appdata.xml" \
     "$PKGROOT/usr/share/metainfo/"
 cp "$ROOT/packaging/assets/icon.png" \

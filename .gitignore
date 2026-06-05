@@ -39,6 +39,7 @@ logs/
 
 # Packaging/build artifacts
 .flatpak-builder/
+.flatpak-tools/
 .appdir/
 .rpmbuild/
 dist/

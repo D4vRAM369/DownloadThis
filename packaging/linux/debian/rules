@@ -9,6 +9,8 @@ override_dh_auto_install:
 		debian/downloadthis/usr/bin/downloadthis
 	install -Dm644 packaging/linux/dev.d4vram.downloadthis.desktop \
 		debian/downloadthis/usr/share/applications/dev.d4vram.downloadthis.desktop
+	sed -i 's|^Exec=downloadthis|Exec=/usr/bin/downloadthis|' \
+		debian/downloadthis/usr/share/applications/dev.d4vram.downloadthis.desktop
 	install -Dm644 packaging/assets/icon.png \
 		debian/downloadthis/usr/share/icons/hicolor/256x256/apps/dev.d4vram.downloadthis.png
 
