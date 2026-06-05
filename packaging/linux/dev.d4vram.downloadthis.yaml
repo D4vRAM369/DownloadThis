@@ -2,8 +2,6 @@ app-id: dev.d4vram.downloadthis
 runtime: org.freedesktop.Platform
 runtime-version: '24.08'
 sdk: org.freedesktop.Sdk
-sdk-extensions:
-  - org.freedesktop.Sdk.Extension.python312
 
 command: downloadthis
 
@@ -17,7 +15,8 @@ finish-args:
   - --env=PYTHONPATH=/app/lib/python3.12/site-packages
 
 build-options:
-  append-path: /usr/lib/sdk/python312/bin
+  build-args:
+    - --share=network
   env:
     PIP_PREFIX: /app
     PIP_DISABLE_PIP_VERSION_CHECK: '1'

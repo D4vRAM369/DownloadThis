@@ -66,8 +66,7 @@ jobs:
             https://dl.flathub.org/repo/flathub.flatpakrepo
           sudo flatpak install -y flathub \
             org.freedesktop.Platform//24.08 \
-            org.freedesktop.Sdk//24.08 \
-            org.freedesktop.Sdk.Extension.python312//24.08
+            org.freedesktop.Sdk//24.08
 
       - name: Build Flatpak
         run: bash packaging/build-flatpak.sh
@@ -112,20 +111,26 @@ jobs:
           cd packaging\windows
           makensis installer.nsi
 
+      - name: Install WiX Toolset
+        shell: powershell
+        run: choco install wixtoolset --version 3.14.1.20250415 -y --no-progress
+
       - name: Build MSI (WiX v3)
         shell: cmd
         run: |
-          set WIX=C:\Program Files (x86)\WiX Toolset v3.11\bin
+          where heat
+          where candle
+          where light
           mkdir obj 2>nul
-          "%WIX%\heat" dir dist\downloadthis ^
+          heat dir dist\downloadthis ^
             -cg AppFiles -gg -scom -sreg -sfrag -srd ^
             -dr INSTALLFOLDER -out obj\AppFiles.wxs
-          "%WIX%\candle" -arch x64 ^
+          candle -arch x64 ^
             -dVERSION=1.0.0 ^
             -dICON_ICO=packaging\icon.ico ^
             packaging\windows\installer.wxs obj\AppFiles.wxs ^
             -out obj\
-          "%WIX%\light" -ext WixUIExtension ^
+          light -ext WixUIExtension ^
             obj\installer.wixobj obj\AppFiles.wixobj ^
             -out dist\downloadthis-1.0.0-x64.msi
 
