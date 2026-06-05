@@ -28,6 +28,8 @@ install -Dm644 packaging/linux/dev.d4vram.downloadthis.desktop \
     %{buildroot}/usr/share/applications/dev.d4vram.downloadthis.desktop
 install -Dm644 packaging/assets/icon.png \
     %{buildroot}/usr/share/icons/hicolor/256x256/apps/dev.d4vram.downloadthis.png
+install -Dm644 packaging/linux/dev.d4vram.downloadthis.appdata.xml \
+    %{buildroot}/usr/share/metainfo/dev.d4vram.downloadthis.appdata.xml
 install -Dm644 LICENSE %{buildroot}/usr/share/licenses/%{name}/LICENSE
 
 mkdir -p %{buildroot}/usr/bin
@@ -55,6 +57,7 @@ fi
 /usr/lib/downloadthis/downloadthis_modern.py
 /usr/bin/downloadthis
 /usr/share/applications/dev.d4vram.downloadthis.desktop
+/usr/share/metainfo/dev.d4vram.downloadthis.appdata.xml
 /usr/share/icons/hicolor/256x256/apps/dev.d4vram.downloadthis.png
 /usr/share/licenses/%{name}/LICENSE
 

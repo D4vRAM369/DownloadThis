@@ -20,12 +20,15 @@ mkdir -p "$PKGROOT/usr/bin"
 mkdir -p "$PKGROOT/usr/share/applications"
 mkdir -p "$PKGROOT/usr/share/icons/hicolor/256x256/apps"
 mkdir -p "$PKGROOT/usr/share/icons/hicolor/128x128/apps"
+mkdir -p "$PKGROOT/usr/share/metainfo"
 
 # App files
 cp "$ROOT/downloadthis_modern.py" "$PKGROOT/usr/lib/downloadthis/"
 install -m755 "$ROOT/packaging/linux/launcher.sh" "$PKGROOT/usr/bin/downloadthis"
 cp "$ROOT/packaging/linux/dev.d4vram.downloadthis.desktop" \
     "$PKGROOT/usr/share/applications/"
+cp "$ROOT/packaging/linux/dev.d4vram.downloadthis.appdata.xml" \
+    "$PKGROOT/usr/share/metainfo/"
 cp "$ROOT/packaging/assets/icon.png" \
     "$PKGROOT/usr/share/icons/hicolor/256x256/apps/dev.d4vram.downloadthis.png"
 cp "$ROOT/packaging/assets/icon128x128.png" \

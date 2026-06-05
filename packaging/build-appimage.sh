@@ -25,6 +25,7 @@ rm -rf "$APPDIR"
 # ── AppDir structure ──────────────────────────────────────────
 mkdir -p "$APPDIR/usr/lib/downloadthis"
 mkdir -p "$APPDIR/usr/share/icons/hicolor/256x256/apps"
+mkdir -p "$APPDIR/usr/share/metainfo"
 
 cp "$ROOT/downloadthis_modern.py" "$APPDIR/usr/lib/downloadthis/"
 
@@ -34,6 +35,10 @@ install -m755 "$ROOT/packaging/linux/AppRun" "$APPDIR/AppRun"
 # .desktop at AppDir root (required by appimagetool)
 cp "$ROOT/packaging/linux/dev.d4vram.downloadthis.desktop" \
     "$APPDIR/dev.d4vram.downloadthis.desktop"
+
+# AppStream metadata (eliminates appimagetool warning, enables AppImageHub)
+cp "$ROOT/packaging/linux/dev.d4vram.downloadthis.appdata.xml" \
+    "$APPDIR/usr/share/metainfo/"
 
 # Icon: root name must match Icon= field in .desktop (without extension)
 cp "$ROOT/packaging/assets/icon.png" "$APPDIR/dev.d4vram.downloadthis.png"

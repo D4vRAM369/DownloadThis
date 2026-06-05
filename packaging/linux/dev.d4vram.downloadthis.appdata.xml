@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>dev.d4vram.downloadthis</id>
+
+  <name>DownloadThis</name>
+  <summary>Audio downloader GUI for yt-dlp</summary>
+
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+
+  <developer id="dev.d4vram369.downloadthis">
+    <name>D4vRAM369</name>
+  </developer>
+
+  <description>
+    <p>
+      DownloadThis is a graphical interface for yt-dlp. Extract audio from
+      YouTube, SoundCloud, and 1000+ sites. Supports mp3, flac, opus, m4a
+      and wav. Features a real-time download queue with progress bars, cookie
+      support, playlist downloads, and a retro Windows XP / P2P aesthetic.
+    </p>
+    <ul>
+      <li>Download audio from 1000+ sites via yt-dlp</li>
+      <li>Real-time queue with per-item progress bars</li>
+      <li>Format and quality selection (mp3, flac, opus, m4a, wav)</li>
+      <li>Playlist support with individual item tracking</li>
+      <li>Cookie file support for age-restricted or private content</li>
+    </ul>
+  </description>
+
+  <categories>
+    <category>AudioVideo</category>
+    <category>Audio</category>
+    <category>Network</category>
+  </categories>
+
+  <url type="homepage">https://github.com/D4vRAM369/downloadthis</url>
+  <url type="bugtracker">https://github.com/D4vRAM369/downloadthis/issues</url>
+
+  <launchable type="desktop-id">dev.d4vram.downloadthis.desktop</launchable>
+
+  <provides>
+    <binary>downloadthis</binary>
+  </provides>
+
+  <releases>
+    <release version="1.0.0" date="2026-06-05">
+      <description>
+        <p>Initial public release.</p>
+      </description>
+    </release>
+  </releases>
+
+  <content_rating type="oars-1.1" />
+</component>
