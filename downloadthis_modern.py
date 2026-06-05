@@ -109,6 +109,7 @@ ETA_RE            = re.compile(r'ETA\s+(\d{2}:\d{2}|\d+:\d{2}:\d{2})')
 SIZE_RE           = re.compile(r'(\d+(?:\.\d+)?[KMGT]?i?B)')
 PLAYLIST_INDEX_RE = re.compile(r'\[download\] Downloading (?:video|item) (\d+) of (\d+)')
 EXTRACT_AUDIO_RE  = re.compile(r'\[ExtractAudio\] Destination:\s*(.+)')
+DOWNLOAD_DEST_RE  = re.compile(r'\[download\] Destination:\s*(.+)')
 
 # Flags that allow arbitrary host command execution — never accept from user input
 DANGEROUS_FLAGS = frozenset({
@@ -311,7 +312,12 @@ class Downloader(threading.Thread):
                 if m_item:
                     self.log_queue.put(("playlist_sub_start", self.url,
                                         int(m_item.group(1)), int(m_item.group(2))))
-                # Detect audio extraction = song title
+                # Detect title: [download] Destination fires early (reliable)
+                m_dest = DOWNLOAD_DEST_RE.search(line.strip())
+                if m_dest:
+                    title = Path(m_dest.group(1).strip()).stem
+                    self.log_queue.put(("playlist_sub_title", self.url, title))
+                # Fallback: [ExtractAudio] Destination for formats that skip direct download
                 m_audio = EXTRACT_AUDIO_RE.search(line.strip())
                 if m_audio:
                     title = Path(m_audio.group(1).strip()).stem
