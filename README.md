@@ -145,7 +145,7 @@ MIT — úsalo, modifícalo, compártelo. Un crédito siempre se agradece.
 
 <div align="center">
 
-Hecho en Las Palmas de Gran Canaria por [D4vRAM](https://github.com/D4vRAM369)
+Hecho por [D4vRAM](https://github.com/D4vRAM369)
 
 </div>
 
@@ -272,6 +272,6 @@ MIT — use it, modify it, share it. A credit is always appreciated.
 
 <div align="center">
 
-Built in Las Palmas de Gran Canaria by [D4vRAM](https://github.com/D4vRAM369)
+Built by [D4vRAM](https://github.com/D4vRAM369)
 
 </div>
