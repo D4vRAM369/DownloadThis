@@ -6,7 +6,7 @@ downloadthis_modern — GUI para yt-dlp  |  Diseño vintage P2P (XP Luna)
 
 __version__ = "1.0.0"
 
-import os, re, sys, json, queue, shlex, signal, subprocess, threading
+import os, re, sys, json, queue, shlex, signal, subprocess, threading, webbrowser
 from pathlib import Path
 import importlib
 import tkinter as tk
@@ -957,6 +957,14 @@ class App(BaseTk):
                   bg=BG_TOOLBAR, activebackground="#f5f3ee",
                   font=FONT_UI, command=self._choose_cookies_file
                   ).grid(row=0, column=1, padx=(2, 0))
+        tk.Button(cf, text="?", width=2, relief="raised", bd=2,
+                  bg=BG_TOOLBAR, activebackground="#f5f3ee",
+                  font=FONT_UI, command=self._show_cookies_help
+                  ).grid(row=0, column=2, padx=(2, 0))
+        lnk = tk.Label(cf, text="🔗", bg=BG_MAIN, font=FONT_UI,
+                       cursor="hand2", fg="#1a6fad")
+        lnk.grid(row=0, column=3, padx=(3, 0))
+        lnk.bind("<Button-1>", lambda e: self._open_extension_store())
         r += 1
 
         # Plantilla
@@ -1555,6 +1563,55 @@ class App(BaseTk):
             if getattr(self, "cookies_entry", None):
                 try: self.cookies_entry.event_generate("<FocusOut>")
                 except Exception: pass
+
+    def _show_cookies_help(self):
+        messagebox.showinfo(
+            "Cookies.txt — ¿Para qué sirve?",
+            "Algunos sitios (YouTube Members, Patreon, SoundCloud privado…)\n"
+            "requieren que estés logueado para descargar contenido.\n\n"
+            "yt-dlp puede usar tus cookies de sesión exportadas como\n"
+            "archivo cookies.txt para autenticarse automáticamente.\n\n"
+            "Cómo obtenerlo:\n"
+            "  1. Instala la extensión (haz clic en 🔗)\n"
+            "  2. Entra al sitio con tu cuenta\n"
+            "  3. Haz clic en la extensión → Export\n"
+            "  4. Guarda el archivo cookies.txt\n"
+            "  5. Selecciónalo aquí con el botón \"…\"\n\n"
+            "⚠  Mantén cookies.txt privado — contiene tu sesión activa.",
+            parent=self,
+        )
+
+    def _open_extension_store(self):
+        win = tk.Toplevel(self)
+        win.title("Descargar extensión")
+        win.resizable(False, False)
+        win.configure(bg=BG_MAIN)
+        try:
+            win.transient(self)
+            win.grab_set()
+        except Exception:
+            pass
+        tk.Label(win, text="Get cookies.txt LOCALLY",
+                 bg=BG_MAIN, font=FONT_UI, pady=8).pack()
+        tk.Label(win,
+                 text="Selecciona tu navegador para abrir la tienda de extensiones:",
+                 bg=BG_MAIN, font=FONT_UI, wraplength=300).pack(padx=12)
+        btn_f = tk.Frame(win, bg=BG_MAIN, pady=8)
+        btn_f.pack()
+        chrome_url  = ("https://chromewebstore.google.com/detail/"
+                       "get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc")
+        firefox_url = "https://addons.mozilla.org/firefox/addon/cookies-txt/"
+        tk.Button(btn_f, text="Chrome / Brave", relief="raised", bd=2,
+                  bg=BG_TOOLBAR, activebackground="#f5f3ee", font=FONT_UI,
+                  command=lambda: (webbrowser.open(chrome_url), win.destroy())
+                  ).grid(row=0, column=0, padx=6, pady=4)
+        tk.Button(btn_f, text="Firefox", relief="raised", bd=2,
+                  bg=BG_TOOLBAR, activebackground="#f5f3ee", font=FONT_UI,
+                  command=lambda: (webbrowser.open(firefox_url), win.destroy())
+                  ).grid(row=0, column=1, padx=6, pady=4)
+        tk.Button(win, text="Cancelar", relief="raised", bd=2,
+                  bg=BG_TOOLBAR, font=FONT_UI,
+                  command=win.destroy).pack(pady=(0, 8))
 
     # ── COMANDOS DE DESCARGA ─────────────────────────────────
 
