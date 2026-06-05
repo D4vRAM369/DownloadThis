@@ -4,16 +4,20 @@
 
 **GUI para yt-dlp — extrae audio de YouTube, SoundCloud y 1000+ sitios, sin complicaciones**
 
-[![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=flat-square&logo=python)](https://python.org)
+[![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![yt-dlp](https://img.shields.io/badge/yt--dlp-latest-red?style=flat-square)](https://github.com/yt-dlp/yt-dlp)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows-lightgrey?style=flat-square)]()
+[![Built with Claude Code](https://img.shields.io/badge/Built%20with-Claude%20Code-8A63D2?style=flat-square&logo=anthropic&logoColor=white)](https://claude.ai/code)
+[![Codex](https://img.shields.io/badge/Assistant-Codex-111827?style=flat-square)](https://openai.com/)
 
-[English version below ↓](#english)
+<img src="pictures/banner2048x640.png" alt="DownloadThis Pro screenshot" width="100%">
+
+Español primero · [English version included below ↓](#english)
 
 </div>
 
----
+ ---
 
 ## ¿Qué es esto?
 
@@ -146,6 +150,8 @@ MIT — úsalo, modifícalo, compártelo. Un crédito siempre se agradece.
 <div align="center">
 
 Hecho por [D4vRAM](https://github.com/D4vRAM369)
+
+
 
 </div>
 
