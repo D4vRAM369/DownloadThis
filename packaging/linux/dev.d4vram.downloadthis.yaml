@@ -38,19 +38,41 @@ modules:
       - |
         cat > /app/bin/appstream-compose << 'EOF'
         #!/bin/bash
-        args=()
+        component=""
+        origin="flatpak"
         while [ "$#" -gt 0 ]; do
             arg="$1"
             shift
             case "$arg" in
-                --basename=*) args+=("--components=${arg#--basename=}") ;;
+                --basename=*) component="${arg#--basename=}" ;;
                 --basename)
-                    args+=("--components=$1")
+                    component="$1"
                     shift
                     ;;
-                *) args+=("$arg") ;;
+                --origin=*) origin="${arg#--origin=}" ;;
+                --origin)
+                    origin="$1"
+                    shift
+                    ;;
+                --prefix=*|--prefix) ;;
+                *)
+                    if [ -z "$component" ] && [ -n "$arg" ]; then
+                        component="$arg"
+                    fi
+                    ;;
             esac
         done
+        component="${component:-dev.d4vram.downloadthis}"
+        args=(
+            --no-partial-urls
+            --prefix=/
+            "--origin=$origin"
+            --result-root=/app
+            --data-dir=/app/share/app-info/xmls
+            --icons-dir=/app/share/app-info/icons/flatpak
+            "--components=$component"
+            /app
+        )
         if [ -x /usr/libexec/appstreamcli-compose ]; then
             exec /usr/libexec/appstreamcli-compose "${args[@]}"
         fi
