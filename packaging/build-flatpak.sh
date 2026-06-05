@@ -13,6 +13,12 @@ command -v flatpak-builder >/dev/null 2>&1 || {
     exit 1
 }
 
+command -v appstream-compose >/dev/null 2>&1 || {
+    echo "ERROR: appstream-compose not found."
+    echo "Run: sudo apt install appstream-compose"
+    exit 1
+}
+
 # Ensure flathub remote and required runtimes
 flatpak remote-add --user --if-not-exists flathub \
     https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
