@@ -789,9 +789,7 @@ class App(BaseTk):
         ])
         cascade("Ayuda", [
             ("Ver logs de sesión", self._open_logs_dir),
-            ("Acerca de…", lambda: messagebox.showinfo(
-                "Acerca de",
-                f"DownloadThis Pro v{__version__}\nGUI para yt-dlp\n\nRequiere yt-dlp y ffmpeg.")),
+            ("Acerca de…", self._show_about),
         ])
 
     def _build_toolbar(self):
@@ -1436,6 +1434,22 @@ class App(BaseTk):
         except FileNotFoundError:
             self.aria2_available = False
             self._log_line("[AVISO] aria2c no disponible; variante externa desactivada.\n")
+
+    def _show_about(self):
+        win = tk.Toplevel(self)
+        win.title("Acerca de")
+        win.resizable(False, False)
+        win.grab_set()
+
+        tk.Label(win, text=f"DownloadThis v{__version__}\nGUI para yt-dlp\n\nRequiere yt-dlp y ffmpeg.",
+                 padx=20, pady=12, justify="center").pack()
+
+        tk.Label(win, text="Creado por D4vRAM369",
+                 font=("Courier", 11, "bold"),
+                 fg="#00FF41", bg="#0D0D0D",
+                 padx=20, pady=8).pack(fill="x")
+
+        tk.Button(win, text="OK", width=8, command=win.destroy).pack(pady=(4, 12))
 
     def _open_logs_dir(self):
         logs_dir = CONFIG_PATH.parent / "logs"
