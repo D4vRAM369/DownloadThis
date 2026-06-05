@@ -10,6 +10,7 @@ permissions:
   contents: write
 
 jobs:
+  # ── Linux: .deb · .rpm · AppImage · PortableApp ──────────────
   build-linux:
     runs-on: ubuntu-22.04
     steps:
@@ -20,25 +21,28 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install .deb build tools
+      - name: Install build tools
         run: |
           sudo apt-get update -q
-          sudo apt-get install -y dpkg-dev debhelper fakeroot python3-venv ffmpeg
+          sudo apt-get install -y dpkg-dev fakeroot python3-venv ffmpeg rpm libfuse2
+
+      - name: Install appimagetool
+        run: |
+          curl -L --fail -o /usr/local/bin/appimagetool \
+            "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
+          chmod +x /usr/local/bin/appimagetool
 
       - name: Build .deb
         run: bash packaging/build-deb.sh
 
-      - name: Install appimage-builder
-        run: pip install appimage-builder
-
       - name: Build AppImage
         run: bash packaging/build-appimage.sh
 
-      - name: Install RPM tools
-        run: sudo apt-get install -y rpm
-
       - name: Build RPM
         run: bash packaging/build-rpm.sh
+
+      - name: Build Portable tarball + zip
+        run: bash packaging/build-portableapp.sh
 
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
@@ -46,6 +50,7 @@ jobs:
           name: linux-packages
           path: dist/
 
+  # ── Flatpak ───────────────────────────────────────────────────
   build-flatpak:
     runs-on: ubuntu-22.04
     steps:
@@ -58,9 +63,9 @@ jobs:
           sudo flatpak remote-add --if-not-exists flathub \
             https://dl.flathub.org/repo/flathub.flatpakrepo
           sudo flatpak install -y flathub \
-            org.gnome.Platform//47 \
-            org.gnome.Sdk//47 \
-            org.freedesktop.Sdk.Extension.python312//23.08
+            org.freedesktop.Platform//24.08 \
+            org.freedesktop.Sdk//24.08 \
+            org.freedesktop.Sdk.Extension.python312//24.08
 
       - name: Build Flatpak
         run: bash packaging/build-flatpak.sh
@@ -71,9 +76,79 @@ jobs:
           name: flatpak-bundle
           path: dist/*.flatpak
 
+  # ── Windows: NSIS setup.exe · MSI · PortableApp zip ──────────
+  build-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python deps + PyInstaller
+        run: pip install pyinstaller tkinterdnd2 yt-dlp
+
+      - name: Build with PyInstaller
+        run: |
+          pyinstaller \
+            --onedir \
+            --windowed \
+            --name downloadthis \
+            --icon packaging/icon.ico \
+            --add-data "packaging/assets/icon.png;." \
+            downloadthis_modern.py
+
+      - name: Build NSIS installer
+        shell: cmd
+        run: |
+          cd packaging\windows
+          makensis installer.nsi
+
+      - name: Build MSI (WiX v3)
+        shell: cmd
+        run: |
+          set WIX=C:\Program Files (x86)\WiX Toolset v3.11\bin
+          mkdir obj 2>nul
+          "%WIX%\heat" dir dist\downloadthis ^
+            -cg AppFiles -gg -scom -sreg -sfrag -srd ^
+            -dr INSTALLFOLDER -out obj\AppFiles.wxs
+          "%WIX%\candle" -arch x64 ^
+            -dVERSION=1.0.0 ^
+            -dICON_ICO=packaging\icon.ico ^
+            packaging\windows\installer.wxs obj\AppFiles.wxs ^
+            -out obj\
+          "%WIX%\light" -ext WixUIExtension ^
+            obj\installer.wixobj obj\AppFiles.wixobj ^
+            -out dist\downloadthis-1.0.0-x64.msi
+
+      - name: Build Windows PortableApp zip
+        run: |
+          VERSION=$(grep -oP "(?<=__version__ = ['\"])[^'\"]*" downloadthis_modern.py | head -1)
+          PORTDIR="DownloadThis-${VERSION}-portable"
+          mkdir -p "$PORTDIR"
+          cp downloadthis_modern.py "$PORTDIR/"
+          cp requirements.txt "$PORTDIR/"
+          cp packaging/windows/portableapp.bat "$PORTDIR/run.bat"
+          cp packaging/windows/portableapp.sh "$PORTDIR/run.sh"
+          printf "DownloadThis Portable\n=====================\nRequirements: Python 3.9+, ffmpeg\nWindows: run.bat\nLinux:   ./run.sh\n" > "$PORTDIR/README.txt"
+          7z a "dist/${PORTDIR}-win.zip" "$PORTDIR/"
+          rm -rf "$PORTDIR"
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-packages
+          path: dist/
+
+  # ── GitHub Release ────────────────────────────────────────────
   release:
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [build-linux, build-flatpak]
+    needs: [build-linux, build-flatpak, build-windows]
     runs-on: ubuntu-22.04
     steps:
       - name: Download all artifacts

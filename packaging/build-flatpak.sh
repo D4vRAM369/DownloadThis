@@ -17,9 +17,8 @@ command -v flatpak-builder >/dev/null 2>&1 || {
 flatpak remote-add --user --if-not-exists flathub \
     https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
 flatpak install --user --noninteractive --or-update flathub \
-    org.gnome.Platform//47 \
-    org.gnome.Sdk//47 \
-    org.freedesktop.Sdk.Extension.python312//23.08 2>/dev/null || {
+    org.freedesktop.Sdk//24.08 \
+    org.freedesktop.Sdk.Extension.python312//24.08 2>/dev/null || {
     echo "WARN: some runtimes failed to install — build may fail"
 }
 

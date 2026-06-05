@@ -1,0 +1,5 @@
+#!/bin/bash
+HERE="$(dirname "$(readlink -f "$0")")"
+export APPDIR="$HERE"
+export PATH="$HERE/usr/bin:$PATH"
+exec python3 "$HERE/usr/lib/downloadthis/downloadthis_modern.py" "$@"

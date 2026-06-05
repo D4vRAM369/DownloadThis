@@ -1,7 +1,7 @@
 app-id: dev.d4vram.downloadthis
-runtime: org.gnome.Platform
-runtime-version: '47'
-sdk: org.gnome.Sdk
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.python312
 
@@ -27,7 +27,6 @@ modules:
     buildsystem: simple
     build-commands:
       - pip3 install --no-build-isolation --prefix=/app
-          ttkbootstrap
           tkinterdnd2
           yt-dlp
     sources:

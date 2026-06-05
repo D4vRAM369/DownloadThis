@@ -24,11 +24,12 @@ run_build() {
     fi
 }
 
-run_build ".deb"     "$SCRIPT_DIR/build-deb.sh"
-run_build "AppImage" "$SCRIPT_DIR/build-appimage.sh"
-run_build "Flatpak"  "$SCRIPT_DIR/build-flatpak.sh"
-run_build "RPM"      "$SCRIPT_DIR/build-rpm.sh"
-run_build "Snap"     "$SCRIPT_DIR/build-snap.sh"
+run_build ".deb"      "$SCRIPT_DIR/build-deb.sh"
+run_build "AppImage"  "$SCRIPT_DIR/build-appimage.sh"
+run_build "Flatpak"   "$SCRIPT_DIR/build-flatpak.sh"
+run_build "RPM"       "$SCRIPT_DIR/build-rpm.sh"
+run_build "Snap"      "$SCRIPT_DIR/build-snap.sh"
+run_build "Portable"  "$SCRIPT_DIR/build-portableapp.sh"
 
 echo ""
 echo "========================================"

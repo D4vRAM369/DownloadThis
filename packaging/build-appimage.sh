@@ -5,39 +5,52 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 VERSION="$(grep -oP "(?<=__version__ = ['\"])[^'\"]*" "$ROOT/downloadthis_modern.py" | head -1)"
 echo "==> Building AppImage (v${VERSION})"
 
-command -v appimage-builder >/dev/null 2>&1 || {
-    echo "ERROR: appimage-builder not found. Run: pip install appimage-builder"
-    exit 1
-}
+# Locate or download appimagetool
+TOOL_CACHE="$ROOT/.cache"
+APPIMAGETOOL="$TOOL_CACHE/appimagetool-x86_64.AppImage"
+
+if command -v appimagetool >/dev/null 2>&1; then
+    APPIMAGETOOL="$(command -v appimagetool)"
+elif [ ! -f "$APPIMAGETOOL" ]; then
+    echo "==> Downloading appimagetool..."
+    mkdir -p "$TOOL_CACHE"
+    curl -L --fail -o "$APPIMAGETOOL" \
+        "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
+    chmod +x "$APPIMAGETOOL"
+fi
+
+APPDIR="$ROOT/.appdir"
+rm -rf "$APPDIR"
+
+# ── AppDir structure ──────────────────────────────────────────
+mkdir -p "$APPDIR/usr/lib/downloadthis"
+mkdir -p "$APPDIR/usr/share/icons/hicolor/256x256/apps"
+
+cp "$ROOT/downloadthis_modern.py" "$APPDIR/usr/lib/downloadthis/"
+
+# AppRun entrypoint (required by appimagetool)
+install -m755 "$ROOT/packaging/linux/AppRun" "$APPDIR/AppRun"
+
+# .desktop at AppDir root (required by appimagetool)
+cp "$ROOT/packaging/linux/dev.d4vram.downloadthis.desktop" \
+    "$APPDIR/dev.d4vram.downloadthis.desktop"
+
+# Icon: root name must match Icon= field in .desktop (without extension)
+cp "$ROOT/packaging/assets/icon.png" "$APPDIR/dev.d4vram.downloadthis.png"
+cp "$ROOT/packaging/assets/icon.png" \
+    "$APPDIR/usr/share/icons/hicolor/256x256/apps/dev.d4vram.downloadthis.png"
+
+# ── Build ─────────────────────────────────────────────────────
+OUTDIR="$ROOT/dist"
+mkdir -p "$OUTDIR"
 
 cd "$ROOT"
 
-# Prepare AppDir
-APPDIR="$ROOT/AppDir"
-rm -rf "$APPDIR"
-mkdir -p "$APPDIR/usr/lib/downloadthis"
-mkdir -p "$APPDIR/usr/share/applications"
-mkdir -p "$APPDIR/usr/share/icons/hicolor/256x256/apps"
+# --appimage-extract-and-run avoids FUSE requirement (works in CI containers)
+ARCH=x86_64 "$APPIMAGETOOL" --appimage-extract-and-run \
+    "$APPDIR" "$OUTDIR/downloadthis-${VERSION}-x86_64.AppImage"
 
-cp downloadthis_modern.py "$APPDIR/usr/lib/downloadthis/"
-
-# Install Python deps into AppDir
-python3 -m pip install --quiet --target "$APPDIR/usr/local/lib/python3.10/dist-packages" \
-    tkinterdnd2 yt-dlp
-
-cp packaging/linux/dev.d4vram.downloadthis.desktop \
-    "$APPDIR/usr/share/applications/"
-cp packaging/assets/icon.png \
-    "$APPDIR/usr/share/icons/hicolor/256x256/apps/dev.d4vram.downloadthis.png"
-
-appimage-builder --recipe packaging/linux/AppImageBuilder.yml --skip-test
-
-OUTDIR="$ROOT/dist"
-mkdir -p "$OUTDIR"
-find "$ROOT" -maxdepth 1 -name "*.AppImage" -exec mv {} "$OUTDIR/" \;
-
-# Cleanup
 rm -rf "$APPDIR"
 
-echo "==> Done: $OUTDIR/"
+echo "==> Done: $OUTDIR/downloadthis-${VERSION}-x86_64.AppImage"
 ls -lh "$OUTDIR/"*.AppImage 2>/dev/null || true
