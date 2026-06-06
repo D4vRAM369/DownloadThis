@@ -2,6 +2,9 @@
 
 # DownloadThis Pro
 
+<img width="400" height="400" alt="DownloadThis icono" src="https://github.com/user-attachments/assets/9020af70-4372-49b5-b0b7-c2cabeb311cf" />
+
+
 **GUI para yt-dlp — extrae audio de YouTube, SoundCloud y 1000+ sitios, sin complicaciones**
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=flat-square&logo=python&logoColor=white)](https://python.org)
@@ -10,8 +13,6 @@
 [![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows-lightgrey?style=flat-square)]()
 [![Built with Claude Code](https://img.shields.io/badge/Built%20with-Claude%20Code-8A63D2?style=flat-square&logo=anthropic&logoColor=white)](https://claude.ai/code)
 [![Codex](https://img.shields.io/badge/Assistant-Codex-111827?style=flat-square)](https://openai.com/)
-
-<img src="pictures/banner2048x640.png" alt="DownloadThis Pro screenshot" width="100%">
 
 Español primero · [English version included below ↓](#english)
 
