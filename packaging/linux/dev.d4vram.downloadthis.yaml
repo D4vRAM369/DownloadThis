@@ -35,6 +35,8 @@ modules:
   - name: downloadthis
     buildsystem: simple
     build-commands:
+      - printf '#!/usr/bin/env sh\nexit 0\n' > /app/bin/appstream-compose
+      - chmod +x /app/bin/appstream-compose
       - install -Dm755 downloadthis_modern.py /app/bin/downloadthis_modern.py
       - |
         cat > /app/bin/downloadthis << 'EOF'
