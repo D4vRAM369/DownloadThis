@@ -13,6 +13,7 @@
 [![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows-lightgrey?style=flat-square)]()
 [![Built with Claude Code](https://img.shields.io/badge/Built%20with-Claude%20Code-8A63D2?style=flat-square&logo=anthropic&logoColor=white)](https://claude.ai/code)
 [![Codex](https://img.shields.io/badge/Assistant-Codex-111827?style=flat-square)](https://openai.com/)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/D4vRAM369/downloadthis)
 
 Español primero · [English version included below ↓](#english)
 
