@@ -1,6 +1,6 @@
 <div align="center">
 
-# DownloadThis Pro
+# DownloadThis
 
 <img width="400" height="400" alt="DownloadThis icono" src="https://github.com/user-attachments/assets/9020af70-4372-49b5-b0b7-c2cabeb311cf" />
 
