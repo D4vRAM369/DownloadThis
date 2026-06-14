@@ -169,7 +169,7 @@ Hecho por [D4vRAM](https://github.com/D4vRAM369)
 
 <div align="center">
 
-# DownloadThis Pro
+# DownloadThis
 
 **GUI for yt-dlp — extract audio from YouTube, SoundCloud and 1000+ sites, without the hassle**
 
