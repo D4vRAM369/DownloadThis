@@ -153,16 +153,6 @@ Abre un issue si encuentras algo roto o tienes una idea concreta. PRs bienvenido
 MIT — úsalo, modifícalo, compártelo. Un crédito siempre se agradece.
 
 ---
-
-<div align="center">
-
-Hecho por [D4vRAM](https://github.com/D4vRAM369)
-
-
-
-</div>
-
----
 ---
 
 <a name="english"></a>
@@ -286,9 +276,3 @@ downloadthis/
 MIT — use it, modify it, share it. A credit is always appreciated.
 
 ---
-
-<div align="center">
-
-Built by [D4vRAM](https://github.com/D4vRAM369)
-
-</div>
