@@ -754,7 +754,7 @@ class App(BaseTk):
         hdr = tk.Frame(self, bg=BG_TITLEBAR, height=24)
         hdr.pack(fill="x")
         hdr.pack_propagate(False)
-        tk.Label(hdr, text=" ⬇  DownloadThis Pro",
+        tk.Label(hdr, text=" DownloadThis Pro",
                  bg=BG_TITLEBAR, fg="#ffffff",
                  font=("Tahoma", 10, "bold")).pack(side="left", padx=6)
         tk.Label(hdr, text="GUI para yt-dlp",
@@ -797,8 +797,8 @@ class App(BaseTk):
             ("Seleccionar destino…",   self._choose_dir),
         ])
         cascade("Herramientas", [
-            ("⚡ Preset Anti-403", self._apply_preset),
-            ("◈ Aplicar No-DASH",  self._apply_avoid_dash),
+            ("Preset Anti-403", self._apply_preset),
+            ("Aplicar No-DASH",  self._apply_avoid_dash),
         ])
         cascade("Ayuda", [
             ("Ver logs de sesión", self._open_logs_dir),
@@ -826,18 +826,18 @@ class App(BaseTk):
             tk.Frame(tb, bg="#b5b0a0", width=1).pack(
                 side="left", fill="y", pady=4, padx=2)
 
-        btn("📁 Destino",      self._choose_dir)
+        btn("Destino",         self._choose_dir)
         sep()
-        btn("📋 Pegar URL",    self._paste_from_clipboard)
+        btn("Pegar URL",       self._paste_from_clipboard)
         btn("+ Añadir URL",    self._add_single_url_dialog)
         sep()
-        btn("💾 Guardar cola", self._save_queue)
-        btn("📂 Cargar cola",  self._load_queue)
+        btn("Guardar cola",    self._save_queue)
+        btn("Cargar cola",     self._load_queue)
         sep()
-        self.start_btn_tb = btn("▶ Iniciar",  self._start_downloads)
-        btn("⏹ Detener",      self._stop_all)
+        self.start_btn_tb = btn("Iniciar",   self._start_downloads)
+        btn("Detener",       self._stop_all)
         sep()
-        btn("🗑 Limpiar",      self._clear_list, fg="#aa0000")
+        btn("Limpiar",       self._clear_list, fg="#aa0000")
 
     def _build_urlbar(self):
         bar = tk.Frame(self, bg=BG_MAIN)
@@ -853,7 +853,7 @@ class App(BaseTk):
                        font=FONT_UI, highlightthickness=0)
         ent.pack(side="left", fill="x", expand=True, ipady=2)
 
-        tk.Button(bar, text="📁", width=3,
+        tk.Button(bar, text="...", width=3,
                   bg=BG_TOOLBAR, activebackground="#f5f3ee",
                   relief="raised", bd=2, font=FONT_UI, cursor="hand2",
                   command=self._choose_dir).pack(side="left", padx=(4, 0), ipady=1)
@@ -861,7 +861,7 @@ class App(BaseTk):
         tk.Frame(self, bg="#b5b0a0", height=1).pack(fill="x")
 
     def _build_main_area(self):
-        # PanedWindow horizontal: izquierda crece, derecha fija ~215px
+        # PanedWindow horizontal: izquierda crece, derecha fija ~270px
         paned = tk.PanedWindow(self, orient="horizontal",
                                bg=BG_MAIN, sashwidth=5,
                                sashrelief="raised", relief="flat", bd=0)
@@ -871,7 +871,7 @@ class App(BaseTk):
         right = tk.Frame(paned, bg=BG_MAIN)
         paned.add(left,  minsize=300, stretch="always")
         paned.add(right, minsize=200, stretch="never")
-        paned.paneconfig(right, width=215)
+        paned.paneconfig(right, width=270)
 
         self._build_left_panel(left)
         self._build_right_panel(right)
@@ -880,7 +880,7 @@ class App(BaseTk):
         # ── Cabecera cola ──
         q_hdr = tk.Frame(parent, bg=BG_PANEL_HDR)
         q_hdr.pack(fill="x")
-        tk.Label(q_hdr, text="🔥 Cola de Descargas",
+        tk.Label(q_hdr, text="Cola de Descargas",
                  bg=BG_PANEL_HDR, font=FONT_BOLD, anchor="w").pack(side="left", padx=6, pady=3)
         self.queue_hdr_count = tk.StringVar(value="0 elementos")
         tk.Label(q_hdr, textvariable=self.queue_hdr_count,
@@ -903,7 +903,7 @@ class App(BaseTk):
         # ── Cabecera log ──
         log_hdr = tk.Frame(parent, bg=BG_PANEL_HDR)
         log_hdr.pack(fill="x")
-        tk.Label(log_hdr, text="🔥 Registro de Actividad",
+        tk.Label(log_hdr, text="Registro de Actividad",
                  bg=BG_PANEL_HDR, font=FONT_BOLD, anchor="w").pack(side="left", padx=6, pady=3)
         tk.Frame(parent, bg="#b5b0a0", height=1).pack(fill="x")
 
@@ -933,7 +933,7 @@ class App(BaseTk):
         # ── Cabecera opciones ──
         opt_hdr = tk.Frame(parent, bg=BG_PANEL_HDR)
         opt_hdr.pack(fill="x")
-        tk.Label(opt_hdr, text="⚙ Opciones Avanzadas",
+        tk.Label(opt_hdr, text="Opciones Avanzadas",
                  bg=BG_PANEL_HDR, font=FONT_BOLD, anchor="w").pack(side="left", padx=6, pady=3)
         tk.Frame(parent, bg="#b5b0a0", height=1).pack(fill="x")
 
@@ -1010,7 +1010,7 @@ class App(BaseTk):
                   bg=BG_TOOLBAR, activebackground="#f5f3ee",
                   font=FONT_UI, command=self._show_cookies_help
                   ).grid(row=0, column=2, padx=(2, 0))
-        lnk = tk.Label(cf, text="🔗", bg=BG_MAIN, font=FONT_UI,
+        lnk = tk.Label(cf, text="link", bg=BG_MAIN, font=FONT_UI,
                        cursor="hand2", fg="#1a6fad")
         lnk.grid(row=0, column=3, padx=(3, 0))
         lnk.bind("<Button-1>", lambda e: self._open_extension_store())
@@ -1037,7 +1037,7 @@ class App(BaseTk):
         for label, tpl in self.template_presets:
             self.template_menu.add_command(label=label,
                                            command=lambda t=tpl: self._set_template(t))
-        self.template_btn = tk.Button(tpl_f, text="▼", width=2,
+        self.template_btn = tk.Button(tpl_f, text="v", width=2,
                                       relief="raised", bd=2, bg=BG_TOOLBAR,
                                       activebackground="#f5f3ee", font=FONT_UI,
                                       command=self._open_template_menu)
@@ -1069,14 +1069,14 @@ class App(BaseTk):
         spec = tk.Frame(parent, bg=BG_MAIN)
         spec.pack(fill="x", padx=6, pady=5)
 
-        tk.Button(spec, text="⚡ Anti-403",
+        tk.Button(spec, text="Anti-403",
                   bg=BTN_AMBER_BG, activebackground="#d4b420",
                   relief="raised", bd=2, font=FONT_BOLD,
                   fg="#664400", cursor="hand2",
                   command=self._apply_preset
                   ).pack(side="left", fill="x", expand=True, padx=(0, 3), ipady=3)
 
-        tk.Button(spec, text="◈ No-DASH",
+        tk.Button(spec, text="No-DASH",
                   bg=BTN_BLUE_BG, activebackground="#6090d0",
                   relief="raised", bd=2, font=FONT_BOLD,
                   fg="#002288", cursor="hand2",
@@ -1086,7 +1086,7 @@ class App(BaseTk):
         # ── Botón principal DESCARGAR TODO ──
         tk.Frame(parent, bg="#b5b0a0", height=1).pack(fill="x")
         self.start_btn = tk.Button(
-            parent, text="▼  DESCARGAR TODO",
+            parent, text="DESCARGAR TODO",
             bg="#228822", activebackground="#1a6618",
             fg="#ffffff", activeforeground="#ffffff",
             relief="raised", bd=3, font=("Tahoma", 11, "bold"),
@@ -1094,7 +1094,7 @@ class App(BaseTk):
         self.start_btn.pack(fill="x", padx=6, pady=6, ipady=6)
 
         # ── Guardar configuración ──
-        tk.Button(parent, text="💾 Guardar Configuración",
+        tk.Button(parent, text="Guardar Configuración",
                   bg=BG_TOOLBAR, activebackground="#f5f3ee",
                   relief="raised", bd=2, font=FONT_UI, cursor="hand2",
                   command=self._save_options
@@ -1126,7 +1126,7 @@ class App(BaseTk):
             self.canvas_queue.register_dnd(DND_FILES, DND_TEXT)
             self.canvas_queue.dnd_bind("<<Drop>>", self._on_drop)
             self.dnd_label.configure(
-                text="⬇ Arrastra enlaces, URLs o archivos .txt aquí")
+                text="Arrastra enlaces, URLs o archivos .txt aquí")
         except Exception as exc:
             self._log_line(f"[AVISO] No se pudo activar drag&drop: {exc}\n", "error")
 
@@ -1698,12 +1698,12 @@ class App(BaseTk):
             "yt-dlp puede usar tus cookies de sesión exportadas como\n"
             "archivo cookies.txt para autenticarse automáticamente.\n\n"
             "Cómo obtenerlo:\n"
-            "  1. Instala la extensión (haz clic en 🔗)\n"
+            "  1. Instala la extensión (haz clic en link)\n"
             "  2. Entra al sitio con tu cuenta\n"
             "  3. Haz clic en la extensión → Export\n"
             "  4. Guarda el archivo cookies.txt\n"
             "  5. Selecciónalo aquí con el botón \"…\"\n\n"
-            "⚠  Mantén cookies.txt privado — contiene tu sesión activa.",
+            "AVISO: Mantén cookies.txt privado; contiene tu sesión activa.",
             parent=self,
         )
 
