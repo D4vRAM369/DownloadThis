@@ -5,7 +5,7 @@
 <img width="400" height="400" alt="DownloadThis icono" src="https://github.com/user-attachments/assets/9020af70-4372-49b5-b0b7-c2cabeb311cf" />
 
 
-**GUI para yt-dlp — extrae audio de YouTube, SoundCloud y 1000+ sitios, sin complicaciones**
+**GUI para yt-dlp — extrae audio y vídeo de YouTube, SoundCloud y 1000+ sitios, sin complicaciones**
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![yt-dlp](https://img.shields.io/badge/yt--dlp-latest-red?style=flat-square)](https://github.com/yt-dlp/yt-dlp)
@@ -39,7 +39,7 @@ _Como luce DownloadThis!_
 ## Características
 
 - **Cola de descargas** con barra de progreso por elemento, velocidad y ETA en tiempo real
-- **Formatos**: mp3, m4a, flac, opus, wav y todo lo que soporte yt-dlp
+- **Formatos**: mp3, mp4, m4a, flac, opus, wav y todo lo que soporte yt-dlp
 - **Calidad configurable** (0–9 para audio)
 - **Soporte de cookies** de navegador (Brave, Firefox, Chrome) para sitios con login
 - **Descarga de playlists** completas con un toggle
@@ -134,7 +134,7 @@ Packaging nativo para Linux (`.desktop`) y Windows (NSIS/WiX) en `packaging/`.
 ## Roadmap
 
 - **v1.0**: extracción de audio local con `yt-dlp`
-- **v1.1/v1.2**: modo audio + vídeo, cuando exista selector dedicado, comandos separados y tests propios
+- **v1.1/v1.2**: modo audio + vídeo **(implementado en v1.1.0)** cuando exista selector dedicado, comandos separados y tests propios
 
 ---
 
@@ -161,7 +161,7 @@ MIT — úsalo, modifícalo, compártelo. Un crédito siempre se agradece.
 
 # DownloadThis
 
-**GUI for yt-dlp — extract audio from YouTube, SoundCloud and 1000+ sites, without the hassle**
+**GUI for yt-dlp — extract audio&video from YouTube, SoundCloud and 1000+ sites, without the hassle**
 
 </div>
 
@@ -184,7 +184,7 @@ _How it looks DownloadThis!_
 ## Features
 
 - **Download queue** with per-item progress bar, real-time speed and ETA
-- **Formats**: mp3, m4a, flac, opus, wav and anything yt-dlp supports
+- **Formats**: mp3, mp4, m4a, flac, opus, wav and anything yt-dlp supports
 - **Configurable quality** (0–9 for audio)
 - **Browser cookie support** (Brave, Firefox, Chrome) for sites requiring login
 - **Full playlist download** with a single toggle
