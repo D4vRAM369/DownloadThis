@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "downloadthis"
-version = "1.0.0"
+version = "1.1.0"
 description = "Local-first audio downloader GUI for yt-dlp with a vintage XP/P2P interface"
 readme = "README.md"
 license = { text = "MIT" }
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     { name = "D4vRAM", email = "d4vram369@github.com" },
 ]
@@ -28,16 +28,12 @@ classifiers = [
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Multimedia :: Sound/Audio",
 ]
-dependencies = [
-    "tkinterdnd2>=0.3",
-    "yt-dlp>=2024.1",
-]
+dynamic = ["dependencies"]
 
 [project.urls]
 Homepage = "https://github.com/D4vRAM369/downloadthis"
@@ -48,4 +44,7 @@ Issues = "https://github.com/D4vRAM369/downloadthis/issues"
 downloadthis = "downloadthis_modern:main"
 
 [tool.setuptools]
-py-modules = ["downloadthis_modern"]
+py-modules = ["downloadthis_modern", "ytdlp_updater"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}

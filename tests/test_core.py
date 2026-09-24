@@ -1,4 +1,6 @@
 import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from downloadthis_modern import (
     extract_urls,
@@ -6,6 +8,7 @@ from downloadthis_modern import (
     parse_progress_line,
     parse_safe_extra_args,
 )
+import downloadthis_modern as app_module
 
 
 class UrlExtractionTests(unittest.TestCase):
@@ -53,6 +56,35 @@ class ExtraArgsSecurityTests(unittest.TestCase):
 
     def test_blocks_dangerous_flags_case_insensitively(self):
         self.assertTrue(is_dangerous_ytdlp_arg("--EXEC=echo-pwned"))
+
+
+class MediaCommandTests(unittest.TestCase):
+    def _app(self, media_type, fmt):
+        return SimpleNamespace(
+            media_type_var=SimpleNamespace(get=lambda: media_type),
+            format_var=SimpleNamespace(get=lambda: fmt),
+            quality_var=SimpleNamespace(get=lambda: "0"),
+            template_var=SimpleNamespace(get=lambda: "%(title)s.%(ext)s"),
+            browser_var=SimpleNamespace(get=lambda: "none"),
+            cookies_file_var=SimpleNamespace(get=lambda: ""),
+            extra_args_var=SimpleNamespace(get=lambda: ""),
+            playlist_var=SimpleNamespace(get=lambda: False),
+        )
+
+    def test_audio_keeps_extraction_options(self):
+        with patch.object(app_module, "YTDLP_CMD", "yt-dlp"):
+            cmd = app_module.App._build_cmd_template(self._app("Audio", "mp3"))
+        self.assertIn("--extract-audio", cmd)
+        self.assertIn("--audio-format", cmd)
+        self.assertNotIn("--merge-output-format", cmd)
+
+    def test_video_uses_automatic_mp4_merge(self):
+        with patch.object(app_module, "YTDLP_CMD", "yt-dlp"):
+            cmd = app_module.App._build_cmd_template(self._app("Vídeo", "mp4"))
+        self.assertIn("bestvideo*+bestaudio/best", cmd)
+        self.assertEqual(cmd[cmd.index("--merge-output-format") + 1], "mp4")
+        self.assertNotIn("--extract-audio", cmd)
+        self.assertNotIn("--audio-quality", cmd)
 
 
 if __name__ == "__main__":

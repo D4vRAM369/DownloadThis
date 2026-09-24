@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 VERSION="$(grep -oP "(?<=__version__ = ['\"])[^'\"]*" "$ROOT/downloadthis_modern.py" | head -1)"
 echo "==> Building RPM (v${VERSION})"
+cd "$ROOT"
+bash packaging/prepare-linux.sh
 
 command -v rpmbuild >/dev/null 2>&1 || {
     echo "ERROR: rpmbuild not found."
@@ -13,7 +15,7 @@ command -v rpmbuild >/dev/null 2>&1 || {
 }
 
 RPMROOT="$ROOT/.rpmbuild"
-mkdir -p "$RPMROOT"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+mkdir -p "$RPMROOT"/{BUILD,RPMS,SOURCES,SPECS,SRPMS,tmp}
 
 SRCNAME="downloadthis-${VERSION}"
 SRCDIR="$(mktemp -d)/$SRCNAME"
@@ -22,13 +24,14 @@ trap 'rm -rf "$(dirname "$SRCDIR")"' EXIT
 mkdir -p "$SRCDIR"
 cp "$ROOT/downloadthis_modern.py" "$SRCDIR/"
 cp "$ROOT/LICENSE" "$SRCDIR/"
+cp -a "$ROOT/.packaging/linux" "$SRCDIR/payload"
 cp -r "$ROOT/packaging" "$SRCDIR/"
 
 tar -czf "$RPMROOT/SOURCES/${SRCNAME}.tar.gz" -C "$(dirname "$SRCDIR")" "$SRCNAME"
 
 cp "$ROOT/packaging/linux/downloadthis.spec" "$RPMROOT/SPECS/"
 
-rpmbuild --define "_topdir $RPMROOT" -bb "$RPMROOT/SPECS/downloadthis.spec"
+rpmbuild --define "_topdir $RPMROOT" --define "_tmppath $RPMROOT/tmp" -bb "$RPMROOT/SPECS/downloadthis.spec"
 
 OUTDIR="$ROOT/dist"
 mkdir -p "$OUTDIR"

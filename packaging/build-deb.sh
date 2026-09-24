@@ -4,13 +4,15 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 VERSION="$(grep -oP "(?<=__version__ = ['\"])[^'\"]*" "$ROOT/downloadthis_modern.py" | head -1)"
 echo "==> Building .deb (v${VERSION})"
+cd "$ROOT"
+bash packaging/prepare-linux.sh
 
 command -v dpkg-deb >/dev/null 2>&1 || {
     echo "ERROR: dpkg-deb not found (install dpkg)"
     exit 1
 }
 
-PKGROOT="$(mktemp -d)/downloadthis_${VERSION}_all"
+PKGROOT="$(mktemp -d)/downloadthis_${VERSION}_amd64"
 trap 'rm -rf "$(dirname "$PKGROOT")"' EXIT
 
 # Directory structure
@@ -23,7 +25,7 @@ mkdir -p "$PKGROOT/usr/share/icons/hicolor/128x128/apps"
 mkdir -p "$PKGROOT/usr/share/metainfo"
 
 # App files
-cp "$ROOT/downloadthis_modern.py" "$PKGROOT/usr/lib/downloadthis/"
+cp -a "$ROOT/.packaging/linux/." "$PKGROOT/usr/lib/downloadthis/"
 install -m755 "$ROOT/packaging/linux/launcher.sh" "$PKGROOT/usr/bin/downloadthis"
 cp "$ROOT/packaging/linux/dev.d4vram.downloadthis.desktop" \
     "$PKGROOT/usr/share/applications/"
@@ -42,8 +44,8 @@ Package: downloadthis
 Version: ${VERSION}-1
 Section: net
 Priority: optional
-Architecture: all
-Depends: python3 (>= 3.9), python3-pip, ffmpeg, python3-tk, python3-venv
+Architecture: amd64
+Depends: python3 (>= 3.10), ffmpeg, python3-tk
 Recommends: aria2
 Maintainer: D4vRAM <d4vram369@github.com>
 Homepage: https://github.com/D4vRAM369/downloadthis
@@ -54,29 +56,11 @@ Description: audio downloader GUI for yt-dlp
  cookie support, playlist downloads, and a Windows XP / P2P retro design.
 EOF
 
-# DEBIAN/postinst — create venv and pip install deps
-cat > "$PKGROOT/DEBIAN/postinst" << 'EOF'
-#!/bin/sh
-set -e
-python3 -m venv /usr/lib/downloadthis/venv 2>/dev/null || true
-/usr/lib/downloadthis/venv/bin/pip install --quiet tkinterdnd2 yt-dlp 2>/dev/null || true
-EOF
-chmod 755 "$PKGROOT/DEBIAN/postinst"
-
-# DEBIAN/prerm — remove venv on uninstall
-cat > "$PKGROOT/DEBIAN/prerm" << 'EOF'
-#!/bin/sh
-if [ "$1" = "remove" ]; then
-    rm -rf /usr/lib/downloadthis/venv
-fi
-EOF
-chmod 755 "$PKGROOT/DEBIAN/prerm"
-
 dpkg-deb --build --root-owner-group "$PKGROOT"
 
 OUTDIR="$ROOT/dist"
 mkdir -p "$OUTDIR"
-mv "$(dirname "$PKGROOT")/downloadthis_${VERSION}_all.deb" "$OUTDIR/"
+mv "$(dirname "$PKGROOT")/downloadthis_${VERSION}_amd64.deb" "$OUTDIR/"
 
 echo "==> Done: $OUTDIR/"
 ls -lh "$OUTDIR/"*.deb

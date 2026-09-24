@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 VERSION="$(grep -oP "(?<=__version__ = ['\"])[^'\"]*" "$ROOT/downloadthis_modern.py" | head -1)"
 echo "==> Building AppImage (v${VERSION})"
+cd "$ROOT"
+bash packaging/prepare-linux.sh
 
 # Locate or download appimagetool
 TOOL_CACHE="$ROOT/.cache"
@@ -27,7 +29,7 @@ mkdir -p "$APPDIR/usr/lib/downloadthis"
 mkdir -p "$APPDIR/usr/share/icons/hicolor/256x256/apps"
 mkdir -p "$APPDIR/usr/share/metainfo"
 
-cp "$ROOT/downloadthis_modern.py" "$APPDIR/usr/lib/downloadthis/"
+cp -a "$ROOT/.packaging/linux/." "$APPDIR/usr/lib/downloadthis/"
 
 # AppRun entrypoint (required by appimagetool)
 install -m755 "$ROOT/packaging/linux/AppRun" "$APPDIR/AppRun"
@@ -52,7 +54,7 @@ mkdir -p "$OUTDIR"
 cd "$ROOT"
 
 # --appimage-extract-and-run avoids FUSE requirement (works in CI containers)
-ARCH=x86_64 "$APPIMAGETOOL" --appimage-extract-and-run \
+ARCH=x86_64 "$APPIMAGETOOL" --appimage-extract-and-run --no-appstream \
     "$APPDIR" "$OUTDIR/downloadthis-${VERSION}-x86_64.AppImage"
 
 rm -rf "$APPDIR"

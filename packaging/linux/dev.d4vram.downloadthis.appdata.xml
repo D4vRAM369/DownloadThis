@@ -44,9 +44,9 @@
   </provides>
 
   <releases>
-    <release version="1.0.0" date="2026-06-05">
+    <release version="1.1.0" date="2026-09-24">
       <description>
-        <p>Initial public release.</p>
+        <p>Added automatic MP4 video downloads and consent-based yt-dlp updates.</p>
       </description>
     </release>
   </releases>

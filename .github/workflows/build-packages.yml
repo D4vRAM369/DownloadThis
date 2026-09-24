@@ -94,62 +94,16 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Python deps + PyInstaller
-        run: pip install pyinstaller tkinterdnd2 yt-dlp
-
-      - name: Build with PyInstaller
-        run: |
-          pyinstaller \
-            --onedir \
-            --windowed \
-            --name downloadthis \
-            --icon packaging/icon.ico \
-            --add-data "packaging/assets/icon.png;." \
-            downloadthis_modern.py
-
-      - name: Build NSIS installer
-        shell: cmd
-        run: |
-          cd packaging\windows
-          makensis installer.nsi
-
-      - name: Install WiX Toolset
+      - name: Install Windows packaging tools
         shell: powershell
-        run: choco install wixtoolset --version 3.14.1.20250415 -y --no-progress
-
-      - name: Build MSI (WiX v3)
-        shell: cmd
         run: |
-          where heat
-          where candle
-          where light
-          mkdir obj 2>nul
-          set APP_SOURCE=%CD%\dist\downloadthis
-          heat dir "%APP_SOURCE%" ^
-            -cg AppFiles -gg -scom -sreg -sfrag -srd ^
-            -dr INSTALLFOLDER -var var.AppSourceDir -out obj\AppFiles.wxs
-          candle -arch x64 ^
-            -dVERSION=1.0.0 ^
-            -dICON_ICO=packaging\icon.ico ^
-            -dAppSourceDir="%APP_SOURCE%" ^
-            packaging\windows\installer.wxs obj\AppFiles.wxs ^
-            -out obj\
-          light -ext WixUIExtension ^
-            obj\installer.wixobj obj\AppFiles.wixobj ^
-            -out dist\downloadthis-1.0.0-x64.msi
+          choco install nsis -y --no-progress
+          choco install wixtoolset --version 3.14.1.20250415 -y --no-progress
+          "C:\Program Files (x86)\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          "C:\Program Files (x86)\WiX Toolset v3.14\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-      - name: Build Windows PortableApp zip
-        run: |
-          VERSION=$(grep -oP "(?<=__version__ = ['\"])[^'\"]*" downloadthis_modern.py | head -1)
-          PORTDIR="DownloadThis-${VERSION}-portable"
-          mkdir -p "$PORTDIR"
-          cp downloadthis_modern.py "$PORTDIR/"
-          cp requirements.txt "$PORTDIR/"
-          cp packaging/windows/portableapp.bat "$PORTDIR/run.bat"
-          cp packaging/windows/portableapp.sh "$PORTDIR/run.sh"
-          printf "DownloadThis Portable\n=====================\nRequirements: Python 3.9+, ffmpeg\nWindows: run.bat\nLinux:   ./run.sh\n" > "$PORTDIR/README.txt"
-          7z a "dist/${PORTDIR}-win.zip" "$PORTDIR/"
-          rm -rf "$PORTDIR"
+      - name: Build Windows EXE, MSI and portable ZIP
+        run: bash packaging/build-windows.sh
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v6

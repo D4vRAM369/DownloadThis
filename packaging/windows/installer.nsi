@@ -1,11 +1,13 @@
 ; DownloadThis NSIS Installer
-; Requires NSIS 3.x + nsProcess plugin
+; Requires NSIS 3.x
 
 Unicode True
 
 !define APP_NAME        "DownloadThis"
 !define APP_ID          "dev.d4vram.downloadthis"
-!define APP_VERSION     "1.0.0"
+!ifndef APP_VERSION
+!define APP_VERSION     "1.1.0"
+!endif
 !define APP_PUBLISHER   "D4vRAM"
 !define APP_URL         "https://github.com/D4vRAM369/downloadthis"
 !define APP_EXE         "downloadthis.exe"

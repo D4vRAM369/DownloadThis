@@ -10,8 +10,12 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo Installing/updating dependencies...
-python -m pip install --quiet --upgrade tkinterdnd2 yt-dlp
+if not exist "%~dp0venv\Scripts\pythonw.exe" (
+    python -m venv "%~dp0venv"
+    if errorlevel 1 exit /b 1
+    "%~dp0venv\Scripts\python.exe" -m pip install -r "%~dp0requirements.txt"
+    if errorlevel 1 exit /b 1
+)
 
 echo Launching DownloadThis...
-start "" pythonw "%SCRIPT%"
+start "" "%~dp0venv\Scripts\pythonw.exe" "%SCRIPT%"

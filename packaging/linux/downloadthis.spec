@@ -1,14 +1,15 @@
 Name:           downloadthis
-Version:        1.0.0
+Version:        1.1.0
 Release:        1%{?dist}
 Summary:        Audio downloader GUI for yt-dlp with a vintage XP/P2P interface
 License:        MIT
 URL:            https://github.com/D4vRAM369/downloadthis
 Source0:        %{name}-%{version}.tar.gz
-BuildArch:      noarch
+BuildArch:      x86_64
+AutoReqProv:    no
+%global __os_install_post %{nil}
 
-Requires:       python3 >= 3.9
-Requires:       python3-pip
+Requires:       python3 >= 3.10
 Requires:       ffmpeg
 Requires:       python3-tkinter
 Recommends:     aria2
@@ -23,7 +24,8 @@ cookie support, playlist downloads, and a Windows XP / P2P retro design.
 %setup -q
 
 %install
-install -Dm644 downloadthis_modern.py %{buildroot}/usr/lib/downloadthis/downloadthis_modern.py
+mkdir -p %{buildroot}/usr/lib/downloadthis
+cp -a payload/. %{buildroot}/usr/lib/downloadthis/
 install -Dm644 packaging/linux/dev.d4vram.downloadthis.desktop \
     %{buildroot}/usr/share/applications/dev.d4vram.downloadthis.desktop
 sed -i 's|^Exec=downloadthis|Exec=/usr/bin/downloadthis|' \
@@ -46,17 +48,8 @@ fi
 LAUNCHER
 chmod 755 %{buildroot}/usr/bin/downloadthis
 
-%post
-python3 -m venv /usr/lib/downloadthis/venv 2>/dev/null || true
-/usr/lib/downloadthis/venv/bin/pip install --quiet tkinterdnd2 yt-dlp 2>/dev/null || true
-
-%preun
-if [ $1 -eq 0 ]; then
-    rm -rf /usr/lib/downloadthis/venv
-fi
-
 %files
-/usr/lib/downloadthis/downloadthis_modern.py
+/usr/lib/downloadthis
 /usr/bin/downloadthis
 /usr/share/applications/dev.d4vram.downloadthis.desktop
 /usr/share/metainfo/dev.d4vram.downloadthis.appdata.xml
@@ -64,5 +57,5 @@ fi
 /usr/share/licenses/%{name}/LICENSE
 
 %changelog
-* Thu Jun 05 2026 D4vRAM <d4vram369@github.com> - 1.0.0-1
-- Initial release
+* Thu Sep 24 2026 D4vRAM <d4vram369@github.com> - 1.1.0-1
+- Add consent-based yt-dlp updates and automatic MP4 video mode

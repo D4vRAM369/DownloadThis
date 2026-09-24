@@ -43,3 +43,8 @@ logs/
 .appdir/
 .rpmbuild/
 dist/
+.packaging/
+.cache/
+/downloadthis_modern/
+build/
+*.egg-info/

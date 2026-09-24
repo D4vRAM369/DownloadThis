@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 VERSION="$(grep -oP "(?<=__version__ = ['\"])[^'\"]*" "$ROOT/downloadthis_modern.py" | head -1)"
 echo "==> Building Flatpak (v${VERSION})"
+cd "$ROOT"
+bash packaging/prepare-linux.sh
 
 command -v flatpak-builder >/dev/null 2>&1 || {
     echo "ERROR: flatpak-builder not found."
@@ -49,9 +51,12 @@ ensure_appstream_compose
 # Ensure flathub remote and required runtimes
 flatpak remote-add --user --if-not-exists flathub \
     https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
-flatpak install --user --noninteractive --or-update flathub \
-    org.freedesktop.Platform//24.08 \
-    org.freedesktop.Sdk//24.08
+if ! flatpak info --user org.freedesktop.Platform//24.08 >/dev/null 2>&1 || \
+   ! flatpak info --user org.freedesktop.Sdk//24.08 >/dev/null 2>&1; then
+    flatpak install --user --noninteractive --or-update flathub \
+        org.freedesktop.Platform//24.08 \
+        org.freedesktop.Sdk//24.08
+fi
 
 MANIFEST="$ROOT/packaging/linux/dev.d4vram.downloadthis.yaml"
 BUILDDIR="$ROOT/.flatpak-builder/build"
@@ -65,9 +70,7 @@ if [ ! -d "$REPODIR/objects" ]; then
 fi
 ostree --repo="$REPODIR" config set core.min-free-space-percent 0
 
-cd "$ROOT"
-
-flatpak-builder --force-clean --repo="$REPODIR" "$BUILDDIR" "$MANIFEST"
+flatpak-builder --force-clean --disable-rofiles-fuse --repo="$REPODIR" "$BUILDDIR" "$MANIFEST"
 flatpak build-bundle "$REPODIR" "$OUTDIR/downloadthis-${VERSION}.flatpak" dev.d4vram.downloadthis
 
 echo "==> Done: $OUTDIR/downloadthis-${VERSION}.flatpak"

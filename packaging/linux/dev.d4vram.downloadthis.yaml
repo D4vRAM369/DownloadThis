@@ -12,7 +12,7 @@ finish-args:
   - --socket=wayland
   - --filesystem=home
   - --talk-name=org.freedesktop.Notifications
-  - --env=PYTHONPATH=/app/lib/python3.12/site-packages
+  - --env=PYTHONPATH=/app/lib/python3.12/site-packages:/app/lib/python3.11/site-packages
 
 build-options:
   build-args:
@@ -25,9 +25,7 @@ modules:
   - name: python-deps
     buildsystem: simple
     build-commands:
-      - pip3 install --no-build-isolation --prefix=/app
-          tkinterdnd2
-          yt-dlp
+      - pip3 install --no-build-isolation --prefix=/app -r requirements.txt
     sources:
       - type: shell
         commands: []
@@ -38,6 +36,8 @@ modules:
       - printf '#!/usr/bin/env sh\nexit 0\n' > /app/bin/appstream-compose
       - chmod +x /app/bin/appstream-compose
       - install -Dm755 downloadthis_modern.py /app/bin/downloadthis_modern.py
+      - install -Dm644 ytdlp_updater.py /app/bin/ytdlp_updater.py
+      - install -Dm755 .packaging/linux/engine/yt-dlp /app/bin/engine/yt-dlp
       - |
         cat > /app/bin/downloadthis << 'EOF'
         #!/bin/bash

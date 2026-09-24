@@ -4,7 +4,7 @@
 downloadthis_modern — GUI para yt-dlp  |  Diseño vintage P2P (XP Luna)
 """
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 import os, re, sys, json, queue, shlex, signal, subprocess, threading, webbrowser
 from pathlib import Path
@@ -13,6 +13,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import filedialog, messagebox
 from datetime import datetime
+from ytdlp_updater import check_for_update, install_update, managed_executable
 
 # ============================================================
 #  AUTO-INSTALL
@@ -181,15 +182,22 @@ def extract_urls(text: str):
 CONFIG_PATH     = Path.home() / ".config" / "downloadthis" / "config.json"
 QUEUE_SAVE_PATH = Path.home() / ".config" / "downloadthis" / "queue_autosave.json"
 
-# Prefer yt-dlp in the venv next to THIS script, not the active Python interpreter
-_script_venv_ytdlp = Path(__file__).parent / "venv" / "bin" / "yt-dlp"
-_interp_ytdlp      = Path(sys.executable).parent / "yt-dlp"
-if _script_venv_ytdlp.exists():
-    YTDLP_CMD = str(_script_venv_ytdlp)
-elif _interp_ytdlp.exists():
-    YTDLP_CMD = str(_interp_ytdlp)
-else:
-    YTDLP_CMD = "yt-dlp"
+def resolve_ytdlp():
+    """Prefer the user-approved update, then the packaged engine and local venv."""
+    name = "yt-dlp.exe" if sys.platform == "win32" else "yt-dlp"
+    root = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
+    scripts = "Scripts" if sys.platform == "win32" else "bin"
+    for candidate in (
+        managed_executable(), root / "engine" / name,
+        root / "venv" / scripts / name, root / ".venv" / scripts / name,
+        Path(sys.executable).parent / name,
+    ):
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return str(candidate)
+    return name
+
+
+YTDLP_CMD = resolve_ytdlp()
 
 # Deno path for yt-dlp JS challenge solving (n-parameter)
 _deno = Path.home() / ".deno" / "bin" / "deno"
@@ -217,6 +225,7 @@ def ensure_config():
         "download_dir":    _default_download_dir(),
         "audio_quality":   "0",
         "audio_format":    "mp3",
+        "media_type":      "audio",
         "cookies_file":    "",
         "extra_args":      "",
         "browser_cookies": "none",
@@ -688,6 +697,8 @@ class App(BaseTk):
         self.aria2_available  = True
         self.log_file_path    = None
         self._dl_stop_requested = False
+        self._update_events = queue.Queue()
+        self._updating_ytdlp = False
 
         # StringVars de statusbar — creadas antes de _build_ui
         self.sb_queue_var  = tk.StringVar(value="Cola: 0 elementos")
@@ -701,6 +712,8 @@ class App(BaseTk):
         self.after(800, self._poll_clipboard)
         self.after(80,  self._drain_log_queue)
         self._check_dependencies()
+        self._run_update_worker(check_for_update, YTDLP_CMD, event="checked")
+        self.after(200, self._poll_update_events)
         self._bind_shortcuts()
         self.after(500, self._auto_load_queue)
 
@@ -931,7 +944,9 @@ class App(BaseTk):
         form.columnconfigure(1, weight=1)
 
         self.quality_var      = tk.StringVar(value=self.cfg.get("audio_quality", "0"))
-        self.format_var       = tk.StringVar(value=self.cfg.get("audio_format",  "mp3"))
+        self.media_type_var   = tk.StringVar(value=self.cfg.get("media_type", "audio"))
+        audio_format          = self.cfg.get("audio_format", "mp3")
+        self.format_var       = tk.StringVar(value="mp4" if self.media_type_var.get().lower() == "video" else audio_format)
         self.browser_var      = tk.StringVar(value=self.cfg.get("browser_cookies", "none"))
         self.template_var     = tk.StringVar(value=self.cfg.get("output_template", "%(title)s.%(ext)s"))
         self.playlist_var     = tk.BooleanVar(value=self.cfg.get("playlist", False))
@@ -949,16 +964,25 @@ class App(BaseTk):
             tk.Label(form, text=text, bg=BG_MAIN, font=FONT_UI,
                      anchor="w").grid(row=r, column=0, sticky="w", **PAD)
 
+        # Tipo de contenido
+        lbl("Tipo:")
+        ttk.Combobox(form, textvariable=self.media_type_var,
+                     values=["Audio", "Vídeo"], state="readonly", width=10,
+                     font=FONT_UI).grid(row=r, column=1, sticky="ew", **PAD)
+        r += 1
+
         # Formato
         lbl("Formato:")
-        ttk.Combobox(form, textvariable=self.format_var,
-                     values=["mp3", "m4a", "flac", "opus", "wav"],
-                     state="readonly", width=10, font=FONT_UI
-                     ).grid(row=r, column=1, sticky="ew", **PAD)
+        self.format_combo = ttk.Combobox(
+            form, textvariable=self.format_var,
+            values=["mp3", "m4a", "flac", "opus", "wav"],
+            state="readonly", width=10, font=FONT_UI)
+        self.format_combo.grid(row=r, column=1, sticky="ew", **PAD)
+        self.media_type_var.trace_add("write", self._on_media_type_changed)
         r += 1
 
         # Calidad
-        lbl("Calidad (0-9):")
+        lbl("Calidad audio (0-9):")
         tk.Entry(form, textvariable=self.quality_var, width=4, **ENTRY_KW
                  ).grid(row=r, column=1, sticky="w", **PAD)
         r += 1
@@ -1397,6 +1421,55 @@ class App(BaseTk):
 
     # ── DEPENDENCIAS ─────────────────────────────────────────
 
+    def _run_update_worker(self, operation, *args, event):
+        # Workers only post data; all Tk calls stay on the main thread.
+        def work():
+            try:
+                self._update_events.put((event, operation(*args)))
+            except Exception as exc:
+                self._update_events.put((event + "_error", str(exc)))
+        threading.Thread(target=work, daemon=True).start()
+
+    def _poll_update_events(self):
+        global YTDLP_CMD
+        try:
+            event, result = self._update_events.get_nowait()
+        except queue.Empty:
+            self.after(200, self._poll_update_events)
+            return
+        if event == "checked" and result:
+            # Defer the prompt until queued downloads finish: their commands
+            # already point at the old executable, which Windows may lock.
+            if self.dl_threads or not self.download_queue.empty():
+                self._update_events.put((event, result))
+            elif messagebox.askokcancel(
+                "Actualización de yt-dlp",
+                f"Versión instalada: {result['current_version'] or 'no instalada'}\n"
+                f"Versión disponible: {result['latest_version']}\n\n"
+                "Pulsa OK para descargar el motor oficial y sus componentes incluidos.\n"
+                "La aplicación seguirá abierta durante la actualización.", parent=self,
+            ):
+                self._updating_ytdlp = True
+                self.sb_ytdlp_var.set("yt-dlp: actualizando…")
+                self._log_line("[*] Descargando actualización de yt-dlp…\n", "info")
+                self._run_update_worker(install_update, result, event="installed")
+        elif event == "installed":
+            self._updating_ytdlp = False
+            YTDLP_CMD = result
+            self.ytdlp_available = True
+            self.sb_ytdlp_var.set("yt-dlp: actualizado")
+            self._log_line(f"[OK] yt-dlp actualizado: {result}\n", "ok")
+            messagebox.showinfo("yt-dlp actualizado", "Actualización completada. Ya puedes descargar.", parent=self)
+        elif event == "installed_error":
+            self._updating_ytdlp = False
+            self.sb_ytdlp_var.set("yt-dlp: actualización fallida")
+            self._log_line(f"[ERROR] Actualización de yt-dlp: {result}\n", "error")
+            messagebox.showerror("No se pudo actualizar yt-dlp",
+                                 f"{result}\n\nSe conserva el motor anterior.", parent=self)
+        elif event == "checked_error":
+            self._log_line(f"[AVISO] No se pudo comprobar la versión de yt-dlp: {result}\n")
+        self.after(200, self._poll_update_events)
+
     def _check_dependencies(self):
         for name, cmd, critical, hint in [
             ("yt-dlp", [YTDLP_CMD, "--version"], True,  "Instala 'yt-dlp'."),
@@ -1407,7 +1480,7 @@ class App(BaseTk):
                                         check=False, timeout=5)
             except FileNotFoundError:
                 self._log_line(f"[ERROR] No se encontró '{name}'. {hint}\n", "error")
-                if critical:
+                if critical and name != "yt-dlp":
                     messagebox.showerror("Dependencia faltante",
                                          f"No se encontró '{name}'.\n{hint}")
                 if name == "yt-dlp": self.ytdlp_available = False
@@ -1569,6 +1642,7 @@ class App(BaseTk):
             "download_dir":    self.dest_var.get().strip(),
             "audio_quality":   q,
             "audio_format":    self.format_var.get().strip(),
+            "media_type":      self.media_type_var.get().strip(),
             "extra_args":      self.extra_args_var.get().strip(),
             "browser_cookies": self.browser_var.get().strip(),
             "cookies_file":    self.cookies_file_var.get().strip(),
@@ -1577,6 +1651,17 @@ class App(BaseTk):
         })
         save_config(self.cfg)
         self._log_line("[*] Opciones guardadas.\n", "info")
+
+    def _on_media_type_changed(self, *_):
+        if not hasattr(self, "format_combo"):
+            return
+        if self.media_type_var.get().lower() == "vídeo":
+            self.format_var.set("mp4")
+            self.format_combo.configure(values=["mp4"])
+        else:
+            if self.format_var.get() == "mp4":
+                self.format_var.set("mp3")
+            self.format_combo.configure(values=["mp3", "m4a", "flac", "opus", "wav"])
 
     def _choose_dir(self):
         d = filedialog.askdirectory(initialdir=self.dest_var.get())
@@ -1660,14 +1745,15 @@ class App(BaseTk):
         fmt      = self.format_var.get().strip()   or "mp3"
         q        = self.quality_var.get().strip()  or "0"
         template = self.template_var.get().strip() or "%(title)s.%(ext)s"
-        cmd = [
-            YTDLP_CMD, "-f", "bestaudio/best",
-            "--extract-audio",
-            "--audio-format", fmt,
-            "--audio-quality", q,
-            "--embed-thumbnail", "--embed-metadata",
-            "-o", template,
-        ]
+        if self.media_type_var.get().lower() in {"video", "vídeo"}:
+            cmd = [YTDLP_CMD, "-f", "bestvideo*+bestaudio/best",
+                   "--merge-output-format", "mp4",
+                   "--embed-thumbnail", "--embed-metadata", "-o", template]
+        else:
+            cmd = [YTDLP_CMD, "-f", "bestaudio/best",
+                   "--extract-audio", "--audio-format", fmt,
+                   "--audio-quality", q,
+                   "--embed-thumbnail", "--embed-metadata", "-o", template]
         browser      = (self.browser_var.get().strip().lower() or "none")
         cookies_file = self.cookies_file_var.get().strip()
         if cookies_file:
@@ -1750,6 +1836,9 @@ class App(BaseTk):
         self._update_statusbars()
 
     def _start_downloads(self):
+        if self._updating_ytdlp:
+            messagebox.showinfo("Actualizando yt-dlp", "Espera a que termine la actualización.", parent=self)
+            return
         outdir = self.dest_var.get().strip()
         if not outdir:
             messagebox.showerror("Error", "Selecciona carpeta de destino.")
