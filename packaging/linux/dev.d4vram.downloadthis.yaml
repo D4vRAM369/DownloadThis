@@ -27,8 +27,8 @@ modules:
     build-commands:
       - pip3 install --no-build-isolation --prefix=/app -r requirements.txt
     sources:
-      - type: shell
-        commands: []
+      - type: file
+        path: ../../requirements.txt
 
   - name: downloadthis
     buildsystem: simple
